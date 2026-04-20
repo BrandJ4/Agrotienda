@@ -1,0 +1,41 @@
+<div style="display: flex; gap: 30px; padding: 20px; font-family: sans-serif;">
+  
+  <div style="flex: 3;">
+    <h1 style="color: #2e7d32;">🌱 Mi AgroTienda</h1>
+    
+    <input type="text" [(ngModel)]="terminoBusqueda" (input)="filtrar()" placeholder="Buscar insumos..." style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 20px; border: 1px solid #ccc;">
+
+    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+      <div *ngFor="let p of productosFiltrados" style="border: 1px solid #ddd; padding: 15px; border-radius: 12px; width: 200px; background: white;">
+        <h4>{{ p.nombre }}</h4>
+        <p>S/. {{ p.precio }}</p>
+        <p><small>Stock: {{ p.stock }}</small></p>
+        <button (click)="agregarAlCarrito(p)" [disabled]="p.stock === 0" 
+                style="width: 100%; background: #4caf50; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer;">
+          {{ p.stock > 0 ? 'Añadir al carrito' : 'Agotado' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex: 1; background: #f4f4f4; padding: 20px; border-radius: 12px; min-height: 400px;">
+    <h3>🛒 Tu Pedido</h3>
+    <hr>
+    <div *ngFor="let item of carrito" style="font-size: 0.9em; margin-bottom: 10px; display: flex; justify-content: space-between;">
+      <span>{{ item.nombre }}</span>
+      <strong>S/. {{ item.precio }}</strong>
+    </div>
+    
+    <div *ngIf="carrito.length > 0" style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 10px;">
+      <h4>Total: S/. {{ total.toFixed(2) }}</h4>
+      <button (click)="finalizarCompra()" style="width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+        CONFIRMAR COMPRA
+      </button>
+    </div>
+    
+    <p *ngIf="carrito.length === 0" style="color: #888; text-align: center; margin-top: 50px;">
+      El carrito está vacío
+    </p>
+  </div>
+
+</div>

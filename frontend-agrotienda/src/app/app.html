@@ -1,41 +1,406 @@
-<div style="display: flex; gap: 30px; padding: 20px; font-family: sans-serif;">
-  
-  <div style="flex: 3;">
-    <h1 style="color: #2e7d32;">🌱 Mi AgroTienda</h1>
-    
-    <input type="text" [(ngModel)]="terminoBusqueda" (input)="filtrar()" placeholder="Buscar insumos..." style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 20px; border: 1px solid #ccc;">
+<!-- ═══════════════════════════════════════════════════════
+     Mi AgroTienda — app.html
+     Bindings conectados a app.ts:
+       · productosFiltrados  → *ngFor productos
+       · terminoBusqueda     → [(ngModel)]
+       · carrito             → *ngFor carrito
+       · total               → {{ total }}
+       · agregarAlCarrito()  → (click) botón producto
+       · finalizarCompra()   → (click) botón confirmar
+       · filtrar()           → (input) buscador
+═══════════════════════════════════════════════════════ -->
 
-    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-      <div *ngFor="let p of productosFiltrados" style="border: 1px solid #ddd; padding: 15px; border-radius: 12px; width: 200px; background: white;">
-        <h4>{{ p.nombre }}</h4>
-        <p>S/. {{ p.precio }}</p>
-        <p><small>Stock: {{ p.stock }}</small></p>
-        <button (click)="agregarAlCarrito(p)" [disabled]="p.stock === 0" 
-                style="width: 100%; background: #4caf50; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer;">
-          {{ p.stock > 0 ? 'Añadir al carrito' : 'Agotado' }}
-        </button>
+<!-- ── NAVBAR ── -->
+<nav class="navbar navbar-expand-lg navbar-agro sticky-top">
+  <div class="container">
+
+    <a class="navbar-brand" href="#">
+      🌱 Mi <span>Agro</span>Tienda
+    </a>
+
+    <button class="navbar-toggler border-0" type="button"
+            data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <i class="bi bi-list text-white fs-4"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav me-auto ms-3 gap-1">
+        <li class="nav-item"><a class="nav-link active" href="#">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Productos</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Ofertas</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Nosotros</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Contacto</a></li>
+      </ul>
+
+      <!-- Buscador navbar -->
+      <input class="form-control search-navbar me-3"
+             type="search"
+             placeholder="🔍 Buscar insumos..."
+             [(ngModel)]="terminoBusqueda"
+             (input)="filtrar()" />
+
+      <!-- Botón carrito con contador -->
+      <a href="#seccion-carrito" class="nav-link btn-carrito">
+        <i class="bi bi-cart3"></i> Carrito
+        <span class="badge-carrito">{{ carrito.length }}</span>
+      </a>
+    </div>
+
+  </div>
+</nav>
+
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="container position-relative">
+    <div class="row align-items-center">
+
+      <!-- Texto -->
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <div class="hero-badge">🌿 Tienda de Insumos Agrícolas</div>
+        <h1>Todo lo que tu campo<br>necesita, en un solo lugar</h1>
+        <p class="lead">
+          Fertilizantes, semillas, pesticidas y más. Productos de calidad
+          para agricultores peruanos, al mejor precio.
+        </p>
+        <div class="d-flex gap-3 flex-wrap">
+          <a href="#seccion-productos" class="btn-hero-primary">
+            <i class="bi bi-bag-heart me-1"></i> Ver Productos
+          </a>
+          <a href="#" class="btn-hero-secondary">
+            <i class="bi bi-play-circle me-1"></i> Cómo funciona
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="hero-stat-item">
+            <div class="num">+500</div><div class="lbl">Productos</div>
+          </div>
+          <div class="hero-stat-item">
+            <div class="num">98%</div><div class="lbl">Satisfacción</div>
+          </div>
+          <div class="hero-stat-item">
+            <div class="num">24h</div><div class="lbl">Despacho</div>
+          </div>
+          <div class="hero-stat-item">
+            <div class="num">+1K</div><div class="lbl">Agricultores</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjetas flotantes -->
+      <div class="col-lg-6 d-flex justify-content-center">
+        <div style="max-width:320px; width:100%;">
+          <div class="hero-card-float mb-3">
+            <div class="icon-box"><i class="bi bi-truck"></i></div>
+            <div>
+              <div style="font-weight:700;">Envío a todo el Perú</div>
+              <div style="opacity:0.7;font-size:0.8rem;">Lima 24h · Provincias 3-5 días</div>
+            </div>
+          </div>
+          <div class="hero-card-float mb-3" style="margin-left:30px;">
+            <div class="icon-box"><i class="bi bi-shield-check"></i></div>
+            <div>
+              <div style="font-weight:700;">Productos Certificados</div>
+              <div style="opacity:0.7;font-size:0.8rem;">Registros SENASA y DIGESA</div>
+            </div>
+          </div>
+          <div class="hero-card-float">
+            <div class="icon-box"><i class="bi bi-headset"></i></div>
+            <div>
+              <div style="font-weight:700;">Asesoría Técnica</div>
+              <div style="opacity:0.7;font-size:0.8rem;">Ingenieros agrónomos disponibles</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ── BARRA CATEGORÍAS ── -->
+<div class="categorias-bar">
+  <div class="container">
+    <div class="d-flex overflow-auto" style="gap:4px; scrollbar-width:none;">
+      <a href="#" class="cat-item activo"><i class="bi bi-grid"></i>Todo</a>
+      <a href="#" class="cat-item"><i class="bi bi-droplet-fill" style="color:#1565c0;"></i>Fertilizantes</a>
+      <a href="#" class="cat-item"><i class="bi bi-flower2" style="color:#e91e63;"></i>Semillas</a>
+      <a href="#" class="cat-item"><i class="bi bi-bug-fill" style="color:#795548;"></i>Pesticidas</a>
+      <a href="#" class="cat-item"><i class="bi bi-tools" style="color:#f57c00;"></i>Herramientas</a>
+      <a href="#" class="cat-item"><i class="bi bi-moisture" style="color:#0097a7;"></i>Riego</a>
+      <a href="#" class="cat-item"><i class="bi bi-box-seam" style="color:#7b1fa2;"></i>Empaques</a>
+      <a href="#" class="cat-item"><i class="bi bi-lightning-charge-fill" style="color:#f9a825;"></i>Ofertas</a>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     CONTENIDO PRINCIPAL
+══════════════════════════════════════ -->
+<main class="container mt-4" id="seccion-productos">
+  <div class="row g-4">
+
+    <!-- ── Columna Izquierda: Productos ── -->
+    <div class="col-lg-8 col-xl-9">
+
+      <!-- Buscador principal -->
+      <div class="mb-3">
+        <div class="input-group mb-3">
+          <input type="text"
+                 class="form-control input-buscar"
+                 placeholder="Buscar por nombre o precio..."
+                 [(ngModel)]="terminoBusqueda"
+                 (input)="filtrar()" />
+          <button class="input-group-text input-group-text-buscar" type="button">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+
+        <!-- Chips de filtro (visual, puedes conectar con categorías en app.ts) -->
+        <div class="d-flex gap-2 flex-wrap">
+          <span class="chip-filtro activo">Todos</span>
+          <span class="chip-filtro">Fertilizantes</span>
+          <span class="chip-filtro">Semillas</span>
+          <span class="chip-filtro">Pesticidas</span>
+          <span class="chip-filtro">En stock</span>
+          <span class="chip-filtro">Ofertas</span>
+        </div>
+      </div>
+
+      <!-- Banner oferta del día -->
+      <div class="banner-promo mb-4">
+        <div class="row align-items-center">
+          <div class="col-8">
+            <div class="hero-badge mb-2"
+                 style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.4);color:#fff;">
+              ⚡ Oferta del día
+            </div>
+            <h4 class="mb-1">20% OFF en toda la línea de Fertilizantes</h4>
+            <p class="mb-0" style="font-size:0.85rem;opacity:0.85;">Solo por hoy · Válido hasta las 23:59</p>
+            <button class="btn-promo">Ver Oferta</button>
+          </div>
+          <div class="col-4 d-none d-sm-block text-end" style="font-size:3.5rem;opacity:0.6;">🌿</div>
+        </div>
+      </div>
+
+      <!-- Header sección -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h2 class="section-title mb-0">Insumos Disponibles</h2>
+          <!-- Muestra el total de productos filtrados -->
+          <p class="section-subtitle mb-0">
+            Mostrando <strong>{{ productosFiltrados.length }}</strong> productos
+          </p>
+        </div>
+        <a href="#" class="ver-todos">Ver todos <i class="bi bi-arrow-right"></i></a>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           GRID DE PRODUCTOS — *ngFor conectado
+           a productosFiltrados desde app.ts
+      ───────────────────────────────────── -->
+      <div class="row row-cols-2 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
+
+        <!-- Mensaje si no hay productos -->
+        <div class="col-12" *ngIf="productosFiltrados.length === 0">
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-search" style="font-size:3rem; display:block; margin-bottom:12px;"></i>
+            No se encontraron productos para "<strong>{{ terminoBusqueda }}</strong>"
+          </div>
+        </div>
+
+        <!-- Tarjeta por cada producto de la API -->
+        <div class="col" *ngFor="let p of productosFiltrados">
+          <div class="card-producto" [style.opacity]="p.stock === 0 ? '0.7' : '1'">
+
+            <!-- Imagen / ícono representativo -->
+            <div class="img-wrapper">
+              <span style="font-size:4.5rem;">🌿</span>
+              <!-- Badge stock -->
+              <span class="badge-stock badge"
+                    [ngClass]="{
+                      'bg-success': p.stock > 10,
+                      'bg-warning text-dark': p.stock > 0 && p.stock <= 10,
+                      'bg-secondary': p.stock === 0
+                    }">
+                {{ p.stock > 10 ? 'En stock' : p.stock > 0 ? 'Pocas unidades' : 'Agotado' }}
+              </span>
+            </div>
+
+            <div class="card-body">
+              <div class="nombre" [title]="p.nombre">{{ p.nombre }}</div>
+              <div class="descripcion">{{ p.descripcion }}</div>
+
+              <div class="d-flex justify-content-between align-items-end mb-1">
+                <div class="precio">S/. {{ p.precio | number:'1.2-2' }}</div>
+              </div>
+
+              <div class="stock-info">
+                <i class="bi bi-boxes me-1"></i>Stock: {{ p.stock }} unidades
+              </div>
+
+              <!-- Botón añadir al carrito — llama a agregarAlCarrito() de app.ts -->
+              <button class="btn-agregar"
+                      (click)="agregarAlCarrito(p)"
+                      [disabled]="p.stock === 0">
+                <i class="bi bi-cart-plus me-1"></i>
+                {{ p.stock > 0 ? 'Añadir al carrito' : 'Agotado' }}
+              </button>
+            </div>
+
+          </div>
+        </div>
+        <!-- /ngFor -->
+
+      </div>
+      <!-- /grid -->
+
+      <!-- Paginación (estática por ahora) -->
+      <nav class="mt-4 d-flex justify-content-center">
+        <ul class="pagination pagination-sm">
+          <li class="page-item disabled"><a class="page-link" href="#">«</a></li>
+          <li class="page-item active">
+            <a class="page-link" href="#"
+               style="background:var(--verde-medio);border-color:var(--verde-medio);">1</a>
+          </li>
+          <li class="page-item"><a class="page-link" href="#">2</a></li>
+          <li class="page-item"><a class="page-link" href="#">3</a></li>
+          <li class="page-item"><a class="page-link" href="#">»</a></li>
+        </ul>
+      </nav>
+
+    </div>
+    <!-- /col productos -->
+
+
+    <!-- ── Columna Derecha: Carrito ── -->
+    <div class="col-lg-4 col-xl-3" id="seccion-carrito">
+
+      <div class="carrito-panel">
+        <h5><i class="bi bi-cart3 me-2"></i>Tu Pedido</h5>
+
+        <!-- Carrito vacío -->
+        <div class="carrito-vacio" *ngIf="carrito.length === 0">
+          <i class="bi bi-cart-x"></i>
+          El carrito está vacío
+        </div>
+
+        <!-- Items del carrito — *ngFor conectado a carrito[] de app.ts -->
+        <div *ngIf="carrito.length > 0">
+          <div class="item-carrito" *ngFor="let item of carrito">
+            <div>
+              <div class="item-nombre">{{ item.nombre }}</div>
+              <div style="font-size:0.75rem; color:#9e9e9e;">
+                S/. {{ item.precio | number:'1.2-2' }} × 1
+              </div>
+            </div>
+            <div class="item-precio">S/. {{ item.precio | number:'1.2-2' }}</div>
+          </div>
+
+          <!-- Total — conectado a total de app.ts -->
+          <div class="carrito-total-row">
+            <span>Total:</span>
+            <span class="monto">S/. {{ total | number:'1.2-2' }}</span>
+          </div>
+
+          <!-- Botón Confirmar Compra — llama a finalizarCompra() de app.ts -->
+          <button class="btn-comprar" (click)="finalizarCompra()">
+            <i class="bi bi-credit-card me-1"></i> CONFIRMAR COMPRA
+          </button>
+        </div>
+
+        <!-- Info envío gratis -->
+        <div class="mt-3 p-2 rounded"
+             style="background:var(--verde-suave); font-size:0.78rem; color:var(--verde-medio);">
+          <i class="bi bi-truck me-1"></i>
+          <strong>Envío gratis</strong> en compras mayores a S/. 150
+        </div>
+      </div>
+
+      <!-- Mini banner asesoría -->
+      <div class="mt-3 p-3 rounded-3 text-center"
+           style="background:var(--tierra-claro); border:1px solid #d7ccc8;">
+        <div style="font-size:2.5rem;">🧑‍🌾</div>
+        <div style="font-weight:700; color:var(--tierra); font-size:0.88rem; margin:6px 0 4px;">
+          ¿Necesitas asesoría?
+        </div>
+        <div style="font-size:0.78rem; color:#8d6e63; margin-bottom:8px;">
+          Nuestros agrónomos te ayudan a elegir el insumo correcto
+        </div>
+        <a href="#" class="btn btn-sm btn-outline-secondary rounded-pill"
+           style="border-color:var(--tierra);color:var(--tierra);font-size:0.78rem;font-weight:700;">
+          <i class="bi bi-whatsapp me-1" style="color:#25d366;"></i> Consultar gratis
+        </a>
+      </div>
+
+    </div>
+    <!-- /col carrito -->
+
+  </div>
+</main>
+
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="footer-brand">🌱 Mi <span>Agro</span>Tienda</div>
+        <p style="font-size:0.85rem;opacity:0.65;max-width:280px;margin-bottom:16px;">
+          Tu aliado en el campo. Insumos agrícolas de calidad con respaldo técnico
+          para agricultores de todo el Perú.
+        </p>
+        <div class="d-flex gap-2">
+          <a href="#" class="social-icon"><i class="bi bi-facebook"></i></a>
+          <a href="#" class="social-icon"><i class="bi bi-instagram"></i></a>
+          <a href="#" class="social-icon"><i class="bi bi-whatsapp"></i></a>
+          <a href="#" class="social-icon"><i class="bi bi-youtube"></i></a>
+        </div>
+      </div>
+      <div class="col-sm-4 col-lg-2">
+        <h6>Productos</h6>
+        <ul>
+          <li><a href="#">Fertilizantes</a></li>
+          <li><a href="#">Semillas</a></li>
+          <li><a href="#">Pesticidas</a></li>
+          <li><a href="#">Herramientas</a></li>
+          <li><a href="#">Riego</a></li>
+        </ul>
+      </div>
+      <div class="col-sm-4 col-lg-2">
+        <h6>Empresa</h6>
+        <ul>
+          <li><a href="#">Quiénes somos</a></li>
+          <li><a href="#">Blog Agrícola</a></li>
+          <li><a href="#">Alianzas</a></li>
+          <li><a href="#">Trabaja con nosotros</a></li>
+        </ul>
+      </div>
+      <div class="col-sm-4 col-lg-2">
+        <h6>Ayuda</h6>
+        <ul>
+          <li><a href="#">Mi cuenta</a></li>
+          <li><a href="#">Mis pedidos</a></li>
+          <li><a href="#">Envíos y devoluciones</a></li>
+          <li><a href="#">Preguntas frecuentes</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2">
+        <h6>Contacto</h6>
+        <ul>
+          <li><a href="#"><i class="bi bi-telephone me-1"></i> 01-234-5678</a></li>
+          <li><a href="#"><i class="bi bi-envelope me-1"></i> info@miagrotienda.pe</a></li>
+          <li><a href="#"><i class="bi bi-geo-alt me-1"></i> Lima, Perú</a></li>
+        </ul>
       </div>
     </div>
-  </div>
 
-  <div style="flex: 1; background: #f4f4f4; padding: 20px; border-radius: 12px; min-height: 400px;">
-    <h3>🛒 Tu Pedido</h3>
-    <hr>
-    <div *ngFor="let item of carrito" style="font-size: 0.9em; margin-bottom: 10px; display: flex; justify-content: space-between;">
-      <span>{{ item.nombre }}</span>
-      <strong>S/. {{ item.precio }}</strong>
+    <div class="footer-bottom">
+      <span>© 2025 Mi AgroTienda · Todos los derechos reservados</span>
+      <span>Hecho con 💚 para el campo peruano</span>
     </div>
-    
-    <div *ngIf="carrito.length > 0" style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 10px;">
-      <h4>Total: S/. {{ total.toFixed(2) }}</h4>
-      <button (click)="finalizarCompra()" style="width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">
-        CONFIRMAR COMPRA
-      </button>
-    </div>
-    
-    <p *ngIf="carrito.length === 0" style="color: #888; text-align: center; margin-top: 50px;">
-      El carrito está vacío
-    </p>
   </div>
-
-</div>
+</footer>

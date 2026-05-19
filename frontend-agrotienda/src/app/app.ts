@@ -13,11 +13,14 @@ import { ItemCarrito } from './item-carrito.model';
   styleUrl: './app.css'
 })
 export class App implements OnInit {
+
   listaProductos: Producto[] = [];
-  productosFiltrados: Producto[] = []; // Esta lista es la que veremos en pantalla
+
+  productosFiltrados: Producto[] = [];
+
   terminoBusqueda: string = '';
 
-  // CARRITO
+  // NUEVO CARRITO
   carrito: ItemCarrito[] = [];
 
   total: number = 0;
@@ -25,7 +28,9 @@ export class App implements OnInit {
   constructor(private productoService: ProductoService) {}
 
   ngOnInit(): void {
+
     this.cargarProductos();
+
   }
 
   cargarProductos() {
@@ -37,18 +42,21 @@ export class App implements OnInit {
         this.listaProductos = data;
 
         this.productosFiltrados = data;
+
       }
 
     });
 
   }
 
-  // BUSCADOR
+  // FILTRAR
   filtrar() {
 
     this.productosFiltrados = this.listaProductos.filter(p =>
 
-      p.nombre.toLowerCase().includes(this.terminoBusqueda.toLowerCase())
+      p.nombre.toLowerCase().includes(
+        this.terminoBusqueda.toLowerCase()
+      )
 
       ||
 
@@ -74,7 +82,9 @@ export class App implements OnInit {
 
         itemExistente.cantidad++;
 
-      } else {
+      }
+
+      else {
 
         alert('No hay más stock disponible');
 
@@ -94,6 +104,12 @@ export class App implements OnInit {
           cantidad: 1
 
         });
+
+      }
+
+      else {
+
+        alert('Producto agotado');
 
       }
 

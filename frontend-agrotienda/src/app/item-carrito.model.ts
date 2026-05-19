@@ -1,4 +1,9 @@
+import { Producto } from './producto.model';
+
 export interface ItemCarrito {
-  productoId: number;
+
+  producto: Producto;
+
   cantidad: number;
+
 }

@@ -19,4 +19,11 @@ export class ProductoService {
   comprarProducto(id: number, cantidad: number): Observable<void> {
   return this.http.put<void>(`${this.apiUrl}/${id}/comprar?cantidad=${cantidad}`, {});
   }
+
+  registrarVenta(items: any) {
+  return this.http.post(
+    'http://localhost:8080/api/ventas',
+    items
+  );
+}
 }

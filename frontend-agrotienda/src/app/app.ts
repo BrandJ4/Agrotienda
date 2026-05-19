@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
 import { ProductoService } from './services/producto.service';
 import { Producto } from './producto.model';
+import { ItemCarrito } from './item-carrito.model';
 
 @Component({
   selector: 'app-root',
@@ -16,8 +17,9 @@ export class App implements OnInit {
   productosFiltrados: Producto[] = []; // Esta lista es la que veremos en pantalla
   terminoBusqueda: string = '';
 
-  // NUEVO: Lista para el carrito
-  carrito: Producto[] = [];
+  // CARRITO
+  carrito: ItemCarrito[] = [];
+
   total: number = 0;
 
   constructor(private productoService: ProductoService) {}
@@ -27,52 +29,132 @@ export class App implements OnInit {
   }
 
   cargarProductos() {
+
     this.productoService.getProductos().subscribe({
+
       next: (data) => {
+
         this.listaProductos = data;
+
         this.productosFiltrados = data;
       }
+
     });
+
   }
 
-  // Lógica de búsqueda por nombre o precio
+  // BUSCADOR
   filtrar() {
-    this.productosFiltrados = this.listaProductos.filter(p => 
-      p.nombre.toLowerCase().includes(this.terminoBusqueda.toLowerCase()) ||
+
+    this.productosFiltrados = this.listaProductos.filter(p =>
+
+      p.nombre.toLowerCase().includes(this.terminoBusqueda.toLowerCase())
+
+      ||
+
       p.precio.toString().includes(this.terminoBusqueda)
+
     );
+
   }
 
-  // NUEVA FUNCIÓN: Añadir al carrito
+  // AGREGAR AL CARRITO
   agregarAlCarrito(producto: Producto) {
-    if (producto.stock > 0) {
-      this.carrito.push(producto);
-      this.calcularTotal();
-      // Opcional: restar stock visualmente (momentáneo)
-      producto.stock--; 
-    } else {
-      alert('¡Lo sentimos! Este insumo se ha agotado.');
+
+    const itemExistente = this.carrito.find(
+
+      item => item.producto.id === producto.id
+
+    );
+
+    // SI YA EXISTE
+    if (itemExistente) {
+
+      if (itemExistente.cantidad < producto.stock) {
+
+        itemExistente.cantidad++;
+
+      } else {
+
+        alert('No hay más stock disponible');
+
+      }
+
     }
+
+    // SI NO EXISTE
+    else {
+
+      if (producto.stock > 0) {
+
+        this.carrito.push({
+
+          producto: producto,
+
+          cantidad: 1
+
+        });
+
+      }
+
+    }
+
+    this.calcularTotal();
+
   }
 
+  // TOTAL
   calcularTotal() {
-    this.total = this.carrito.reduce((sum, item) => sum + item.precio, 0);
+
+    this.total = this.carrito.reduce(
+
+      (sum, item) =>
+
+        sum + (item.producto.precio * item.cantidad),
+
+      0
+
+    );
+
   }
 
+  // FINALIZAR COMPRA
   finalizarCompra() {
-  if (this.carrito.length === 0) return;
 
-  // Recorremos el carrito y avisamos al backend por cada producto
-  this.carrito.forEach(item => {
-    this.productoService.comprarProducto(item.id!, 1).subscribe({
-      next: () => console.log(`Stock actualizado para ${item.nombre}`),
-      error: (err) => alert("Error al actualizar: " + err.message)
+    if (this.carrito.length === 0) return;
+
+    const itemsVenta = this.carrito.map(item => ({
+
+      productoId: item.producto.id,
+
+      cantidad: item.cantidad
+
+    }));
+
+    this.productoService.registrarVenta(itemsVenta).subscribe({
+
+      next: () => {
+
+        alert('¡Compra procesada con éxito!');
+
+        this.carrito = [];
+
+        this.total = 0;
+
+        this.cargarProductos();
+
+      },
+
+      error: (err) => {
+
+        console.error(err);
+
+        alert('Error al procesar compra');
+
+      }
+
     });
-  });
 
-  alert(`¡Compra procesada con éxito!`);
-  this.carrito = [];
-  this.total = 0;
-  this.cargarProductos(); // Refrescamos la lista con el stock real de la DB
-}
+  }
+
 }

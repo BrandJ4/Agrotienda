@@ -291,14 +291,34 @@
         <!-- Items del carrito — *ngFor conectado a carrito[] de app.ts -->
         <div *ngIf="carrito.length > 0">
           <div class="item-carrito" *ngFor="let item of carrito">
-            <div>
-              <div class="item-nombre">{{ item.nombre }}</div>
-              <div style="font-size:0.75rem; color:#9e9e9e;">
-                S/. {{ item.precio | number:'1.2-2' }} × 1
-              </div>
-            </div>
-            <div class="item-precio">S/. {{ item.precio | number:'1.2-2' }}</div>
-          </div>
+
+  <div>
+
+    <div class="item-nombre">
+
+      {{ item.producto.nombre }}
+
+    </div>
+
+    <div style="font-size:0.75rem; color:#9e9e9e;">
+
+      S/. {{ item.producto.precio | number:'1.2-2' }}
+
+      ×
+
+      {{ item.cantidad }}
+
+    </div>
+
+  </div>
+
+  <div class="item-precio">
+
+    S/. {{ item.producto.precio * item.cantidad | number:'1.2-2' }}
+
+  </div>
+
+</div>
 
           <!-- Total — conectado a total de app.ts -->
           <div class="carrito-total-row">

@@ -4,9 +4,10 @@ import com.miagrotienda.api.Model.Producto;
 import com.miagrotienda.api.Service.ProductoService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
-@RestController
 @CrossOrigin(origins = "http://localhost:4200")
+@RestController
 @RequestMapping("/api/productos")
 public class ProductoController {
 

@@ -24,7 +24,7 @@ export class App implements OnInit {
   carrito: ItemCarrito[] = [];
   total: number = 0;
  
-  metodoPago: string = 'EFECTIVO';
+  metodoPago: string = 'Efectivo';
   referenciaPago: string = '';
  
   misPedidos: VentaResponse[] = [];
@@ -122,7 +122,7 @@ export class App implements OnInit {
       referenciaPago: this.referenciaPago || null
     };
  
-    this.productoService.registrarVenta(payload).subscribe({
+    this.ventaService.registrarVenta(payload).subscribe({
       next: () => {
         alert('¡Compra procesada con éxito!');
         this.carrito = [];

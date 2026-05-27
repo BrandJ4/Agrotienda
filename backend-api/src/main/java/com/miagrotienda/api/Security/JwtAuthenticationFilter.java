@@ -40,17 +40,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = header.substring(7);
         try {
             String username = jwtService.extractUsername(token);
+            String rol = jwtService.extractRol(token); // <-- Extraemos el rol directo del JWT
+
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                // Creamos la autoridad limpia basada exactamente en el texto del token (ej: "CLIENTE" o "ADMIN")
+                java.util.List<org.springframework.security.core.GrantedAuthority> authorities = 
+                        org.springframework.security.core.authority.AuthorityUtils.createAuthorityList(rol);
+
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        username, // Pasamos el username principal
                         null,
-                        userDetails.getAuthorities()
+                        authorities // Inyectamos la autoridad plana en el contexto
                 );
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
         } catch (Exception ignored) {
+            // Si el token es inválido, no autentica y continuará el flujo seguro
         }
 
         filterChain.doFilter(request, response);

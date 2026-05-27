@@ -59,54 +59,43 @@ public class VentaService {
         venta.setEstadoPago(EstadoPago.PENDIENTE);
         venta.setReferenciaPago(req.getReferenciaPago());
 
-        List<DetalleVenta> detalles = new ArrayList<>();
-
         double total = 0;
 
         for (ItemCarritoDTO item : req.getItems()) {
-
-            Producto producto = productoRepository.findByIdForUpdate(item.getProductoId())
-                    .orElseThrow(() -> new NotFoundException("Producto no encontrado"));
+            // NOTA: Si sigue dando error, cambia temporalmente findByIdForUpdate por findById
+            Producto producto = productoRepository.findById(item.getProductoId())
+              .orElseThrow(() -> new NotFoundException("Producto no encontrado"));
 
             // VALIDAR STOCK
             if (producto.getStock() < item.getCantidad()) {
-
                 throw new InsufficientStockException(
                         "Stock insuficiente para: " + producto.getNombre()
                 );
             }
 
             // DESCONTAR STOCK
-            producto.setStock(
-                    producto.getStock() - item.getCantidad()
-            );
+            producto.setStock(producto.getStock() - item.getCantidad());
 
             // CALCULAR SUBTOTAL
-            double subtotal =
-                    producto.getPrecio() * item.getCantidad();
+            double subtotal = producto.getPrecio() * item.getCantidad();
 
             // CREAR DETALLE
             DetalleVenta detalle = new DetalleVenta();
-
             detalle.setProducto(producto);
-
             detalle.setCantidad(item.getCantidad());
-
             detalle.setPrecioUnitario(producto.getPrecio());
-
             detalle.setSubtotal(subtotal);
+            detalle.setVenta(venta); // Enlace bidireccional
 
-            detalle.setVenta(venta);
-
-            detalles.add(detalle);
+            // Añadimos directamente a la lista interna ya inicializada de la venta
+            venta.getDetalles().add(detalle);
 
             total += subtotal;
         }
 
-        venta.setDetalles(detalles);
-
         venta.setTotal(total);
 
+        // Guardará la venta y por CascadeType.ALL guardará todos los detalles hijos automáticamente
         return ventaRepository.save(venta);
     }
 

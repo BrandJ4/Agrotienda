@@ -28,6 +28,10 @@ export class VentaService {
 
   constructor(private http: HttpClient) {}
 
+  registrarVenta(payload: any): Observable<any> {
+  return this.http.post(this.apiUrl, payload);
+}
+
   misVentas(): Observable<VentaResponse[]> {
     return this.http.get<VentaResponse[]>(`${this.apiUrl}/mis`);
   }

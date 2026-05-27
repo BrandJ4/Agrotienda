@@ -1,14 +1,11 @@
 <!-- ═══════════════════════════════════════════════════════
-     Mi AgroTienda — app.html
-     Bindings conectados a app.ts:
-       · productosFiltrados  → *ngFor productos
-       · terminoBusqueda     → [(ngModel)]
-       · carrito             → *ngFor carrito
-       · total               → {{ total }}
-       · agregarAlCarrito()  → (click) botón producto
-       · finalizarCompra()   → (click) botón confirmar
-       · filtrar()           → (input) buscador
+     Mi AgroTienda — app.html  (sección navbar auth actualizada)
+     Solo se muestra el bloque del navbar aquí para que lo
+     pegues en tu app.html reemplazando el div de auth actual.
 ═══════════════════════════════════════════════════════ -->
+
+<!-- ── MODAL AUTH (agrega esto justo antes del cierre de </nav>) ── -->
+<app-auth *ngIf="showAuthModal" (close)="showAuthModal = false"></app-auth>
 
 <!-- ── NAVBAR ── -->
 <nav class="navbar navbar-expand-lg navbar-agro sticky-top">
@@ -40,26 +37,38 @@
              (input)="filtrar()" />
 
       <!-- Botón carrito con contador -->
-      <a href="#seccion-carrito" class="nav-link btn-carrito">
+      <a href="#seccion-carrito" class="nav-link btn-carrito me-2">
         <i class="bi bi-cart3"></i> Carrito
         <span class="badge-carrito">{{ carrito.length }}</span>
       </a>
 
-      <div class="d-flex align-items-center gap-2 ms-3" *ngIf="!authService.isLoggedIn(); else loggedIn">
-        <input class="form-control form-control-sm" placeholder="Usuario" [(ngModel)]="authUsername" />
-        <input class="form-control form-control-sm" type="password" placeholder="Clave" [(ngModel)]="authPassword" />
-        <button class="btn btn-sm btn-light" (click)="login()">Login</button>
-        <button class="btn btn-sm btn-outline-light" (click)="register()">Registro</button>
+      <!-- ── AUTH SECTION ── -->
+      <div *ngIf="!authService.isLoggedIn(); else loggedIn">
+        <button class="btn-nav-login" (click)="showAuthModal = true">
+          <i class="bi bi-person-circle me-1"></i> Iniciar sesión
+        </button>
       </div>
 
       <ng-template #loggedIn>
-        <div class="d-flex align-items-center gap-2 ms-3">
-          <span class="text-white small">{{ authService.current()?.username }} ({{ authService.current()?.rol }})</span>
-          <button class="btn btn-sm btn-outline-light" (click)="logout()">Salir</button>
+        <div class="user-pill">
+          <div class="user-avatar">
+            {{ authService.current()?.username?.charAt(0)?.toUpperCase() }}
+          </div>
+          <div class="user-info">
+            <span class="user-name">{{ authService.current()?.username }}</span>
+            <span class="user-role"
+                  [class.role-admin]="authService.current()?.rol === 'ADMIN'"
+                  [class.role-cliente]="authService.current()?.rol === 'CLIENTE'">
+              {{ authService.current()?.rol === 'ADMIN' ? '⚙ Admin' : '🛒 Cliente' }}
+            </span>
+          </div>
+          <button class="btn-logout" (click)="logout()" title="Cerrar sesión">
+            <i class="bi bi-box-arrow-right"></i>
+          </button>
         </div>
       </ng-template>
-    </div>
 
+    </div>
   </div>
 </nav>
 
@@ -81,9 +90,9 @@
           <a href="#seccion-productos" class="btn-hero-primary">
             <i class="bi bi-bag-heart me-1"></i> Ver Productos
           </a>
-          <a href="#" class="btn-hero-secondary">
-            <i class="bi bi-play-circle me-1"></i> Cómo funciona
-          </a>
+          <button class="btn-hero-secondary" *ngIf="!authService.isLoggedIn()" (click)="showAuthModal = true">
+            <i class="bi bi-person me-1"></i> Crear cuenta
+          </button>
         </div>
 
         <div class="hero-stats">
@@ -201,9 +210,13 @@
     <!-- ── Columna Izquierda: Productos ── -->
     <div class="col-lg-8 col-xl-9">
 
+      <!-- Panel Admin -->
       <div class="mb-3" *ngIf="authService.rol() === 'ADMIN'">
-        <div class="p-3 rounded-4" style="background:rgba(121,85,72,0.06);border:1px solid rgba(121,85,72,0.15);">
-          <div style="font-weight:900;margin-bottom:10px;">Panel Admin · Productos</div>
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <span class="admin-badge">⚙ Panel Admin</span>
+            <span style="opacity:0.65;font-size:0.8rem;">Agregar nuevo producto</span>
+          </div>
           <div class="row g-2">
             <div class="col-md-4">
               <input class="form-control form-control-sm" placeholder="Nombre" [(ngModel)]="adminProducto.nombre" />
@@ -227,7 +240,9 @@
               <input class="form-control form-control-sm" type="number" placeholder="% descuento" [(ngModel)]="adminProducto.descuentoPorcentaje" />
             </div>
             <div class="col-md-3">
-              <button class="btn btn-sm btn-success w-100" (click)="crearProductoAdmin()">Crear</button>
+              <button class="btn btn-sm btn-success w-100" (click)="crearProductoAdmin()">
+                <i class="bi bi-plus-circle me-1"></i> Crear
+              </button>
             </div>
           </div>
         </div>
@@ -246,7 +261,6 @@
           </button>
         </div>
 
-        <!-- Chips de filtro (visual, puedes conectar con categorías en app.ts) -->
         <div class="d-flex gap-2 flex-wrap">
           <span class="chip-filtro activo">Todos</span>
           <span class="chip-filtro">Fertilizantes</span>
@@ -277,7 +291,6 @@
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h2 class="section-title mb-0">Insumos Disponibles</h2>
-          <!-- Muestra el total de productos filtrados -->
           <p class="section-subtitle mb-0">
             Mostrando <strong>{{ productosFiltrados.length }}</strong> productos
           </p>
@@ -285,13 +298,9 @@
         <a href="#" class="ver-todos">Ver todos <i class="bi bi-arrow-right"></i></a>
       </div>
 
-      <!-- ─────────────────────────────────────
-           GRID DE PRODUCTOS — *ngFor conectado
-           a productosFiltrados desde app.ts
-      ───────────────────────────────────── -->
+      <!-- GRID DE PRODUCTOS -->
       <div class="row row-cols-2 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
 
-        <!-- Mensaje si no hay productos -->
         <div class="col-12" *ngIf="productosFiltrados.length === 0">
           <div class="text-center py-5 text-muted">
             <i class="bi bi-search" style="font-size:3rem; display:block; margin-bottom:12px;"></i>
@@ -299,15 +308,12 @@
           </div>
         </div>
 
-        <!-- Tarjeta por cada producto de la API -->
         <div class="col" *ngFor="let p of productosFiltrados">
           <div class="card-producto" [style.opacity]="p.stock === 0 ? '0.7' : '1'">
 
-            <!-- Imagen / ícono representativo -->
             <div class="img-wrapper">
               <span style="font-size:4.5rem;">🌿</span>
               <span class="badge bg-danger" style="position:absolute;top:10px;left:10px;" *ngIf="p.oferta">OFERTA</span>
-              <!-- Badge stock -->
               <span class="badge-stock badge"
                     [ngClass]="{
                       'bg-success': p.stock > 10,
@@ -337,7 +343,6 @@
                 <i class="bi bi-boxes me-1"></i>Stock: {{ p.stock }} unidades
               </div>
 
-              <!-- Botón añadir al carrito — llama a agregarAlCarrito() de app.ts -->
               <button class="btn-agregar"
                       (click)="agregarAlCarrito(p)"
                       [disabled]="p.stock === 0">
@@ -348,18 +353,16 @@
               <button class="btn btn-sm btn-outline-danger w-100 mt-2"
                       *ngIf="authService.rol() === 'ADMIN' && p.id"
                       (click)="eliminarProductoAdmin(p.id)">
-                Eliminar
+                <i class="bi bi-trash me-1"></i> Eliminar
               </button>
             </div>
 
           </div>
         </div>
-        <!-- /ngFor -->
 
       </div>
-      <!-- /grid -->
 
-      <!-- Paginación (estática por ahora) -->
+      <!-- Paginación -->
       <nav class="mt-4 d-flex justify-content-center">
         <ul class="pagination pagination-sm">
           <li class="page-item disabled"><a class="page-link" href="#">«</a></li>
@@ -383,116 +386,104 @@
       <div class="carrito-panel">
         <h5><i class="bi bi-cart3 me-2"></i>Tu Pedido</h5>
 
-        <!-- Carrito vacío -->
-        <div class="carrito-vacio" *ngIf="carrito.length === 0">
-          <i class="bi bi-cart-x"></i>
-          El carrito está vacío
-        </div>
-
-        <!-- Items del carrito — *ngFor conectado a carrito[] de app.ts -->
-        <div *ngIf="carrito.length > 0">
-          <div class="item-carrito" *ngFor="let item of carrito">
-
-  <div>
-
-    <div class="item-nombre">
-
-      {{ item.producto.nombre }}
-
-    </div>
-
-    <div style="font-size:0.75rem; color:#9e9e9e;">
-
-      S/. {{ item.producto.precio | number:'1.2-2' }}
-
-      ×
-
-      {{ item.cantidad }}
-
-    </div>
-
-  </div>
-
-  <div class="item-precio">
-
-    S/. {{ item.producto.precio * item.cantidad | number:'1.2-2' }}
-
-  </div>
-
-</div>
-
-          <!-- Total — conectado a total de app.ts -->
-          <div class="carrito-total-row">
-            <span>Total:</span>
-            <span class="monto">S/. {{ total | number:'1.2-2' }}</span>
-          </div>
-
-          <div class="mt-2">
-            <label class="form-label" style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">Método de pago</label>
-            <select class="form-select form-select-sm" [(ngModel)]="metodoPago">
-              <option value="EFECTIVO">Efectivo</option>
-              <option value="YAPE">Yape</option>
-              <option value="PLIN">Plin</option>
-              <option value="TARJETA">Tarjeta</option>
-            </select>
-            <input class="form-control form-control-sm mt-2"
-                   placeholder="Referencia (opcional)"
-                   [(ngModel)]="referenciaPago" />
-          </div>
-
-          <!-- Botón Confirmar Compra — llama a finalizarCompra() de app.ts -->
-          <button class="btn-comprar" (click)="finalizarCompra()">
-            <i class="bi bi-credit-card me-1"></i> CONFIRMAR COMPRA
+        <!-- Si no está logueado, mostrar acceso rápido -->
+        <div *ngIf="!authService.isLoggedIn()" class="login-prompt">
+          <div style="font-size:2rem;margin-bottom:8px;">🔐</div>
+          <p style="font-size:0.84rem;color:#757575;margin-bottom:12px;">
+            Inicia sesión para guardar tu carrito y realizar compras
+          </p>
+          <button class="btn-comprar" style="margin-top:0;" (click)="showAuthModal = true">
+            <i class="bi bi-person-circle me-1"></i> Iniciar sesión
           </button>
         </div>
 
-        <!-- Info envío gratis -->
-        <div class="mt-3 p-2 rounded"
-             style="background:var(--verde-suave); font-size:0.78rem; color:var(--verde-medio);">
-          <i class="bi bi-truck me-1"></i>
-          <strong>Envío gratis</strong> en compras mayores a S/. 150
-        </div>
+        <div *ngIf="authService.isLoggedIn()">
+          <!-- Carrito vacío -->
+          <div class="carrito-vacio" *ngIf="carrito.length === 0">
+            <i class="bi bi-cart-x"></i>
+            El carrito está vacío
+          </div>
 
-        <div class="mt-3" *ngIf="authService.isLoggedIn()">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div style="font-weight:800;font-size:0.9rem;">Mis pedidos</div>
-            <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="cargarMisPedidos()">
-              Actualizar
+          <div *ngIf="carrito.length > 0">
+            <div class="item-carrito" *ngFor="let item of carrito">
+              <div>
+                <div class="item-nombre">{{ item.producto.nombre }}</div>
+                <div style="font-size:0.75rem; color:#9e9e9e;">
+                  S/. {{ item.producto.precio | number:'1.2-2' }} × {{ item.cantidad }}
+                </div>
+              </div>
+              <div class="item-precio">
+                S/. {{ item.producto.precio * item.cantidad | number:'1.2-2' }}
+              </div>
+            </div>
+
+            <div class="carrito-total-row">
+              <span>Total:</span>
+              <span class="monto">S/. {{ total | number:'1.2-2' }}</span>
+            </div>
+
+            <div class="mt-2">
+              <label class="form-label" style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">Método de pago</label>
+              <select class="form-select form-select-sm" [(ngModel)]="metodoPago">
+                <option value="EFECTIVO">Efectivo</option>
+                <option value="YAPE">Yape</option>
+                <option value="PLIN">Plin</option>
+                <option value="TARJETA">Tarjeta</option>
+              </select>
+              <input class="form-control form-control-sm mt-2"
+                     placeholder="Referencia (opcional)"
+                     [(ngModel)]="referenciaPago" />
+            </div>
+
+            <button class="btn-comprar" (click)="finalizarCompra()">
+              <i class="bi bi-credit-card me-1"></i> CONFIRMAR COMPRA
             </button>
           </div>
-          <div *ngIf="misPedidos.length === 0" class="text-muted" style="font-size:0.8rem;">
-            Aún no tienes pedidos.
-          </div>
-          <div *ngFor="let v of misPedidos.slice(0,3)" class="p-2 rounded mb-2"
-               style="background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.06);">
-            <div class="d-flex justify-content-between" style="font-size:0.82rem;">
-              <div>#{{ v.id }} · {{ v.metodoPago || 'EFECTIVO' }}</div>
-              <div style="font-weight:800;">S/. {{ v.total | number:'1.2-2' }}</div>
-            </div>
-            <div class="text-muted" style="font-size:0.72rem;">
-              {{ v.estadoPago || 'PENDIENTE' }}
-            </div>
-          </div>
-        </div>
 
-        <div class="mt-3" *ngIf="authService.rol() === 'ADMIN'">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div style="font-weight:800;font-size:0.9rem;">Pedidos (Admin)</div>
-            <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="cargarPedidosAdmin()">
-              Actualizar
-            </button>
+          <!-- Info envío gratis -->
+          <div class="mt-3 p-2 rounded"
+               style="background:var(--verde-suave); font-size:0.78rem; color:var(--verde-medio);">
+            <i class="bi bi-truck me-1"></i>
+            <strong>Envío gratis</strong> en compras mayores a S/. 150
           </div>
-          <div *ngIf="pedidosAdmin.length === 0" class="text-muted" style="font-size:0.8rem;">
-            Sin pedidos.
-          </div>
-          <div *ngFor="let v of pedidosAdmin.slice(0,3)" class="p-2 rounded mb-2"
-               style="background:rgba(121,85,72,0.06);border:1px solid rgba(121,85,72,0.15);">
-            <div class="d-flex justify-content-between" style="font-size:0.82rem;">
-              <div>#{{ v.id }} · {{ v.metodoPago || 'EFECTIVO' }}</div>
-              <div style="font-weight:800;">S/. {{ v.total | number:'1.2-2' }}</div>
+
+          <!-- Mis pedidos -->
+          <div class="mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div style="font-weight:800;font-size:0.9rem;">Mis pedidos</div>
+              <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="cargarMisPedidos()">
+                Actualizar
+              </button>
             </div>
-            <div class="text-muted" style="font-size:0.72rem;">
-              {{ v.estadoPago || 'PENDIENTE' }}
+            <div *ngIf="misPedidos.length === 0" class="text-muted" style="font-size:0.8rem;">
+              Aún no tienes pedidos.
+            </div>
+            <div *ngFor="let v of misPedidos.slice(0,3)" class="p-2 rounded mb-2"
+                 style="background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.06);">
+              <div class="d-flex justify-content-between" style="font-size:0.82rem;">
+                <div>#{{ v.id }} · {{ v.metodoPago || 'EFECTIVO' }}</div>
+                <div style="font-weight:800;">S/. {{ v.total | number:'1.2-2' }}</div>
+              </div>
+              <div class="text-muted" style="font-size:0.72rem;">{{ v.estadoPago || 'PENDIENTE' }}</div>
+            </div>
+          </div>
+
+          <!-- Pedidos Admin -->
+          <div class="mt-3" *ngIf="authService.rol() === 'ADMIN'">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div style="font-weight:800;font-size:0.9rem;">Todos los pedidos</div>
+              <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="cargarPedidosAdmin()">
+                Actualizar
+              </button>
+            </div>
+            <div *ngIf="pedidosAdmin.length === 0" class="text-muted" style="font-size:0.8rem;">Sin pedidos.</div>
+            <div *ngFor="let v of pedidosAdmin.slice(0,3)" class="p-2 rounded mb-2"
+                 style="background:rgba(121,85,72,0.06);border:1px solid rgba(121,85,72,0.15);">
+              <div class="d-flex justify-content-between" style="font-size:0.82rem;">
+                <div>#{{ v.id }} · {{ v.metodoPago || 'EFECTIVO' }}</div>
+                <div style="font-weight:800;">S/. {{ v.total | number:'1.2-2' }}</div>
+              </div>
+              <div class="text-muted" style="font-size:0.72rem;">{{ v.estadoPago || 'PENDIENTE' }}</div>
             </div>
           </div>
         </div>
@@ -521,6 +512,7 @@
 </main>
 
 
+<!-- NOSOTROS -->
 <section id="seccion-nosotros" class="py-5" style="background:#fff;">
   <div class="container">
     <div class="row g-4 align-items-center">
@@ -558,6 +550,7 @@
 </section>
 
 
+<!-- CONTACTO -->
 <section id="seccion-contacto" class="py-5" style="background:rgba(121,85,72,0.06);">
   <div class="container">
     <div class="row g-4">
@@ -577,8 +570,7 @@
           <div class="mb-2"><strong>Dirección:</strong> Av. Principal 123, Lima, Perú</div>
           <a class="btn btn-sm btn-outline-secondary rounded-pill"
              href="https://www.google.com/maps"
-             target="_blank"
-             rel="noreferrer"
+             target="_blank" rel="noreferrer"
              style="border-color:var(--tierra);color:var(--tierra);font-weight:700;">
             Ver en Google Maps
           </a>
@@ -589,7 +581,7 @@
 </section>
 
 
-<!-- ── FOOTER ── -->
+<!-- FOOTER -->
 <footer>
   <div class="container">
     <div class="row g-4">

@@ -1,14 +1,23 @@
 package com.miagrotienda.api.Service;
 
 import com.miagrotienda.api.DTO.ItemCarritoDTO;
+import com.miagrotienda.api.DTO.VentaCreateRequestDTO;
+import com.miagrotienda.api.Exception.BadRequestException;
+import com.miagrotienda.api.Exception.InsufficientStockException;
+import com.miagrotienda.api.Exception.NotFoundException;
+import com.miagrotienda.api.Model.EstadoPago;
 import com.miagrotienda.api.Model.DetalleVenta;
+import com.miagrotienda.api.Model.MetodoPago;
 import com.miagrotienda.api.Model.Producto;
+import com.miagrotienda.api.Model.Usuario;
 import com.miagrotienda.api.Model.Venta;
 import com.miagrotienda.api.Repository.ProductoRepository;
+import com.miagrotienda.api.Repository.UsuarioRepository;
 import com.miagrotienda.api.Repository.VentaRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,36 +28,50 @@ public class VentaService {
     private final VentaRepository ventaRepository;
 
     private final ProductoRepository productoRepository;
+    private final UsuarioRepository usuarioRepository;
 
     public VentaService(
             VentaRepository ventaRepository,
-            ProductoRepository productoRepository
+            ProductoRepository productoRepository,
+            UsuarioRepository usuarioRepository
     ) {
 
         this.ventaRepository = ventaRepository;
 
         this.productoRepository = productoRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Transactional
-    public Venta registrarVenta(List<ItemCarritoDTO> items) {
+    public Venta registrarVenta(VentaCreateRequestDTO req) {
+
+        if (req.getItems() == null || req.getItems().isEmpty()) {
+            throw new BadRequestException("Items es obligatorio");
+        }
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuario = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
         Venta venta = new Venta();
+        venta.setUsuario(usuario);
+        venta.setMetodoPago(req.getMetodoPago() == null ? MetodoPago.EFECTIVO : req.getMetodoPago());
+        venta.setEstadoPago(EstadoPago.PENDIENTE);
+        venta.setReferenciaPago(req.getReferenciaPago());
 
         List<DetalleVenta> detalles = new ArrayList<>();
 
         double total = 0;
 
-        for (ItemCarritoDTO item : items) {
+        for (ItemCarritoDTO item : req.getItems()) {
 
-            Producto producto = productoRepository.findById(item.getProductoId())
-                    .orElseThrow(() ->
-                            new RuntimeException("Producto no encontrado"));
+            Producto producto = productoRepository.findByIdForUpdate(item.getProductoId())
+                    .orElseThrow(() -> new NotFoundException("Producto no encontrado"));
 
             // VALIDAR STOCK
             if (producto.getStock() < item.getCantidad()) {
 
-                throw new RuntimeException(
+                throw new InsufficientStockException(
                         "Stock insuficiente para: " + producto.getNombre()
                 );
             }
@@ -85,5 +108,29 @@ public class VentaService {
         venta.setTotal(total);
 
         return ventaRepository.save(venta);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Venta> misVentas() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ventaRepository.findByUsuarioUsernameOrderByFechaDesc(username);
+    }
+
+    @Transactional(readOnly = true)
+    public Venta obtenerPorId(Long id) {
+        return ventaRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Venta no encontrada"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Venta> listarTodas() {
+        return ventaRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Venta obtenerMiVentaPorId(Long id) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ventaRepository.findByIdAndUsuarioUsername(id, username)
+                .orElseThrow(() -> new NotFoundException("Venta no encontrada"));
     }
 }

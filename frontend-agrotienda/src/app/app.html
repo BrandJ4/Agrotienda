@@ -26,10 +26,10 @@
     <div class="collapse navbar-collapse" id="navMenu">
       <ul class="navbar-nav me-auto ms-3 gap-1">
         <li class="nav-item"><a class="nav-link active" href="#">Inicio</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Productos</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Ofertas</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Nosotros</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Contacto</a></li>
+        <li class="nav-item"><a class="nav-link" href="#seccion-productos">Productos</a></li>
+        <li class="nav-item"><a class="nav-link" href="#seccion-ofertas">Ofertas</a></li>
+        <li class="nav-item"><a class="nav-link" href="#seccion-nosotros">Nosotros</a></li>
+        <li class="nav-item"><a class="nav-link" href="#seccion-contacto">Contacto</a></li>
       </ul>
 
       <!-- Buscador navbar -->
@@ -44,6 +44,20 @@
         <i class="bi bi-cart3"></i> Carrito
         <span class="badge-carrito">{{ carrito.length }}</span>
       </a>
+
+      <div class="d-flex align-items-center gap-2 ms-3" *ngIf="!authService.isLoggedIn(); else loggedIn">
+        <input class="form-control form-control-sm" placeholder="Usuario" [(ngModel)]="authUsername" />
+        <input class="form-control form-control-sm" type="password" placeholder="Clave" [(ngModel)]="authPassword" />
+        <button class="btn btn-sm btn-light" (click)="login()">Login</button>
+        <button class="btn btn-sm btn-outline-light" (click)="register()">Registro</button>
+      </div>
+
+      <ng-template #loggedIn>
+        <div class="d-flex align-items-center gap-2 ms-3">
+          <span class="text-white small">{{ authService.current()?.username }} ({{ authService.current()?.rol }})</span>
+          <button class="btn btn-sm btn-outline-light" (click)="logout()">Salir</button>
+        </div>
+      </ng-template>
     </div>
 
   </div>
@@ -137,6 +151,47 @@
 </div>
 
 
+<section id="seccion-ofertas" class="py-4" style="background:rgba(67,160,71,0.06);">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-3">
+      <div>
+        <h2 class="section-title mb-0">Ofertas</h2>
+        <p class="section-subtitle mb-0">Productos con descuento</p>
+      </div>
+      <a href="#seccion-productos" class="ver-todos">Ver todos <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-3" *ngIf="productosOferta.length > 0; else sinOfertas">
+      <div class="col" *ngFor="let p of productosOferta">
+        <div class="card-producto" style="border:1px solid rgba(244,67,54,0.25);">
+          <div class="img-wrapper">
+            <span style="font-size:4.5rem;">🔥</span>
+            <span class="badge bg-danger" style="position:absolute;top:10px;left:10px;">OFERTA</span>
+          </div>
+          <div class="card-body">
+            <div class="nombre" [title]="p.nombre">{{ p.nombre }}</div>
+            <div class="descripcion">{{ p.descripcion }}</div>
+            <div class="d-flex justify-content-between align-items-end mb-1">
+              <div class="precio">
+                S/. {{ (p.descuentoPorcentaje != null ? (p.precio * (1 - (p.descuentoPorcentaje / 100))) : p.precio) | number:'1.2-2' }}
+              </div>
+            </div>
+            <button class="btn-agregar" (click)="agregarAlCarrito(p)" [disabled]="p.stock === 0">
+              <i class="bi bi-cart-plus me-1"></i>
+              {{ p.stock > 0 ? 'Añadir al carrito' : 'Agotado' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #sinOfertas>
+      <div class="text-center py-4 text-muted">No hay ofertas registradas todavía.</div>
+    </ng-template>
+  </div>
+</section>
+
+
 <!-- ══════════════════════════════════════
      CONTENIDO PRINCIPAL
 ══════════════════════════════════════ -->
@@ -145,6 +200,38 @@
 
     <!-- ── Columna Izquierda: Productos ── -->
     <div class="col-lg-8 col-xl-9">
+
+      <div class="mb-3" *ngIf="authService.rol() === 'ADMIN'">
+        <div class="p-3 rounded-4" style="background:rgba(121,85,72,0.06);border:1px solid rgba(121,85,72,0.15);">
+          <div style="font-weight:900;margin-bottom:10px;">Panel Admin · Productos</div>
+          <div class="row g-2">
+            <div class="col-md-4">
+              <input class="form-control form-control-sm" placeholder="Nombre" [(ngModel)]="adminProducto.nombre" />
+            </div>
+            <div class="col-md-4">
+              <input class="form-control form-control-sm" placeholder="Descripción" [(ngModel)]="adminProducto.descripcion" />
+            </div>
+            <div class="col-md-2">
+              <input class="form-control form-control-sm" type="number" placeholder="Precio" [(ngModel)]="adminProducto.precio" />
+            </div>
+            <div class="col-md-2">
+              <input class="form-control form-control-sm" type="number" placeholder="Stock" [(ngModel)]="adminProducto.stock" />
+            </div>
+            <div class="col-md-3">
+              <select class="form-select form-select-sm" [(ngModel)]="adminProducto.oferta">
+                <option [ngValue]="false">Sin oferta</option>
+                <option [ngValue]="true">En oferta</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <input class="form-control form-control-sm" type="number" placeholder="% descuento" [(ngModel)]="adminProducto.descuentoPorcentaje" />
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-sm btn-success w-100" (click)="crearProductoAdmin()">Crear</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Buscador principal -->
       <div class="mb-3">
@@ -219,6 +306,7 @@
             <!-- Imagen / ícono representativo -->
             <div class="img-wrapper">
               <span style="font-size:4.5rem;">🌿</span>
+              <span class="badge bg-danger" style="position:absolute;top:10px;left:10px;" *ngIf="p.oferta">OFERTA</span>
               <!-- Badge stock -->
               <span class="badge-stock badge"
                     [ngClass]="{
@@ -235,7 +323,14 @@
               <div class="descripcion">{{ p.descripcion }}</div>
 
               <div class="d-flex justify-content-between align-items-end mb-1">
-                <div class="precio">S/. {{ p.precio | number:'1.2-2' }}</div>
+                <div class="precio">
+                  <span *ngIf="p.oferta && p.descuentoPorcentaje != null; else precioNormal">
+                    S/. {{ (p.precio * (1 - (p.descuentoPorcentaje / 100))) | number:'1.2-2' }}
+                  </span>
+                  <ng-template #precioNormal>
+                    S/. {{ p.precio | number:'1.2-2' }}
+                  </ng-template>
+                </div>
               </div>
 
               <div class="stock-info">
@@ -248,6 +343,12 @@
                       [disabled]="p.stock === 0">
                 <i class="bi bi-cart-plus me-1"></i>
                 {{ p.stock > 0 ? 'Añadir al carrito' : 'Agotado' }}
+              </button>
+
+              <button class="btn btn-sm btn-outline-danger w-100 mt-2"
+                      *ngIf="authService.rol() === 'ADMIN' && p.id"
+                      (click)="eliminarProductoAdmin(p.id)">
+                Eliminar
               </button>
             </div>
 
@@ -326,6 +427,19 @@
             <span class="monto">S/. {{ total | number:'1.2-2' }}</span>
           </div>
 
+          <div class="mt-2">
+            <label class="form-label" style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">Método de pago</label>
+            <select class="form-select form-select-sm" [(ngModel)]="metodoPago">
+              <option value="EFECTIVO">Efectivo</option>
+              <option value="YAPE">Yape</option>
+              <option value="PLIN">Plin</option>
+              <option value="TARJETA">Tarjeta</option>
+            </select>
+            <input class="form-control form-control-sm mt-2"
+                   placeholder="Referencia (opcional)"
+                   [(ngModel)]="referenciaPago" />
+          </div>
+
           <!-- Botón Confirmar Compra — llama a finalizarCompra() de app.ts -->
           <button class="btn-comprar" (click)="finalizarCompra()">
             <i class="bi bi-credit-card me-1"></i> CONFIRMAR COMPRA
@@ -337,6 +451,50 @@
              style="background:var(--verde-suave); font-size:0.78rem; color:var(--verde-medio);">
           <i class="bi bi-truck me-1"></i>
           <strong>Envío gratis</strong> en compras mayores a S/. 150
+        </div>
+
+        <div class="mt-3" *ngIf="authService.isLoggedIn()">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div style="font-weight:800;font-size:0.9rem;">Mis pedidos</div>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="cargarMisPedidos()">
+              Actualizar
+            </button>
+          </div>
+          <div *ngIf="misPedidos.length === 0" class="text-muted" style="font-size:0.8rem;">
+            Aún no tienes pedidos.
+          </div>
+          <div *ngFor="let v of misPedidos.slice(0,3)" class="p-2 rounded mb-2"
+               style="background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.06);">
+            <div class="d-flex justify-content-between" style="font-size:0.82rem;">
+              <div>#{{ v.id }} · {{ v.metodoPago || 'EFECTIVO' }}</div>
+              <div style="font-weight:800;">S/. {{ v.total | number:'1.2-2' }}</div>
+            </div>
+            <div class="text-muted" style="font-size:0.72rem;">
+              {{ v.estadoPago || 'PENDIENTE' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3" *ngIf="authService.rol() === 'ADMIN'">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div style="font-weight:800;font-size:0.9rem;">Pedidos (Admin)</div>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="cargarPedidosAdmin()">
+              Actualizar
+            </button>
+          </div>
+          <div *ngIf="pedidosAdmin.length === 0" class="text-muted" style="font-size:0.8rem;">
+            Sin pedidos.
+          </div>
+          <div *ngFor="let v of pedidosAdmin.slice(0,3)" class="p-2 rounded mb-2"
+               style="background:rgba(121,85,72,0.06);border:1px solid rgba(121,85,72,0.15);">
+            <div class="d-flex justify-content-between" style="font-size:0.82rem;">
+              <div>#{{ v.id }} · {{ v.metodoPago || 'EFECTIVO' }}</div>
+              <div style="font-weight:800;">S/. {{ v.total | number:'1.2-2' }}</div>
+            </div>
+            <div class="text-muted" style="font-size:0.72rem;">
+              {{ v.estadoPago || 'PENDIENTE' }}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -361,6 +519,74 @@
 
   </div>
 </main>
+
+
+<section id="seccion-nosotros" class="py-5" style="background:#fff;">
+  <div class="container">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-6">
+        <h2 class="section-title">Nosotros</h2>
+        <p class="section-subtitle">Insumos agrícolas con respaldo técnico</p>
+        <p style="opacity:0.8;">
+          Mi AgroTienda nace para acercar productos confiables a agricultores de todo el Perú.
+          Trabajamos con marcas certificadas y ofrecemos asesoría para que elijas el insumo correcto.
+        </p>
+        <div class="d-flex gap-3 flex-wrap">
+          <div class="p-3 rounded-3" style="background:rgba(67,160,71,0.08);min-width:180px;">
+            <div style="font-weight:700;">Calidad</div>
+            <div style="opacity:0.75;font-size:0.85rem;">Productos certificados</div>
+          </div>
+          <div class="p-3 rounded-3" style="background:rgba(67,160,71,0.08);min-width:180px;">
+            <div style="font-weight:700;">Soporte</div>
+            <div style="opacity:0.75;font-size:0.85rem;">Asesoría técnica</div>
+          </div>
+          <div class="p-3 rounded-3" style="background:rgba(67,160,71,0.08);min-width:180px;">
+            <div style="font-weight:700;">Entrega</div>
+            <div style="opacity:0.75;font-size:0.85rem;">Envíos a todo el Perú</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center">
+        <div class="p-4 rounded-4" style="border:1px solid rgba(0,0,0,0.08);background:rgba(67,160,71,0.04);">
+          <div style="font-size:4rem;">🌾</div>
+          <div style="font-weight:800;font-size:1.1rem;">Tu aliado en el campo</div>
+          <div style="opacity:0.75;font-size:0.9rem;">Atención de lunes a sábado</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section id="seccion-contacto" class="py-5" style="background:rgba(121,85,72,0.06);">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <h2 class="section-title">Contacto</h2>
+        <p class="section-subtitle">Escríbenos y te ayudamos</p>
+        <div class="p-4 rounded-4" style="background:#fff;border:1px solid rgba(0,0,0,0.08);">
+          <div class="mb-2"><strong>WhatsApp:</strong> +51 999 999 999</div>
+          <div class="mb-2"><strong>Email:</strong> contacto@miagrotienda.pe</div>
+          <div class="mb-0"><strong>Horario:</strong> Lun–Sáb 8:00–18:00</div>
+        </div>
+      </div>
+      <div class="col-lg-6" id="seccion-ubicacion">
+        <h2 class="section-title">Ubicación</h2>
+        <p class="section-subtitle">Encuéntranos</p>
+        <div class="p-4 rounded-4" style="background:#fff;border:1px solid rgba(0,0,0,0.08);">
+          <div class="mb-2"><strong>Dirección:</strong> Av. Principal 123, Lima, Perú</div>
+          <a class="btn btn-sm btn-outline-secondary rounded-pill"
+             href="https://www.google.com/maps"
+             target="_blank"
+             rel="noreferrer"
+             style="border-color:var(--tierra);color:var(--tierra);font-weight:700;">
+            Ver en Google Maps
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 
 <!-- ── FOOTER ── -->

@@ -22,6 +22,18 @@ public class Venta {
 
     private Double total;
 
+    @Enumerated(EnumType.STRING)
+    private MetodoPago metodoPago;
+
+    @Enumerated(EnumType.STRING)
+    private EstadoPago estadoPago;
+
+    private String referenciaPago;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
+
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL)
     private List<DetalleVenta> detalles;
 }

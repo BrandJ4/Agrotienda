@@ -21,9 +21,24 @@ public class ProductoController {
         return productoService.obtenerTodos();
     }
 
+    @GetMapping("/{id}")
+    public Producto obtenerPorId(@PathVariable Long id) {
+        return productoService.obtenerPorId(id);
+    }
+
     @PostMapping
     public Producto crear(@RequestBody Producto producto) {
         return productoService.guardar(producto);
+    }
+
+    @PutMapping("/{id}")
+    public Producto actualizar(@PathVariable Long id, @RequestBody Producto producto) {
+        return productoService.actualizar(id, producto);
+    }
+
+    @DeleteMapping("/{id}")
+    public void eliminar(@PathVariable Long id) {
+        productoService.eliminar(id);
     }
 
     // Nuevo endpoint para cumplir con "comparar precios"

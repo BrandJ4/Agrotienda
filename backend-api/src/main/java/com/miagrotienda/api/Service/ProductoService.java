@@ -1,5 +1,7 @@
 package com.miagrotienda.api.Service;
 
+import com.miagrotienda.api.Exception.InsufficientStockException;
+import com.miagrotienda.api.Exception.NotFoundException;
 import com.miagrotienda.api.Model.Producto;
 import com.miagrotienda.api.Repository.ProductoRepository;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,33 @@ public class ProductoService {
         return productoRepository.save(producto);
     }
 
+    public Producto obtenerPorId(Long id) {
+        return productoRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Producto con ID " + id + " no encontrado"));
+    }
+
+    @Transactional
+    public Producto actualizar(Long id, Producto payload) {
+        Producto actual = productoRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new NotFoundException("Producto con ID " + id + " no encontrado"));
+
+        actual.setNombre(payload.getNombre());
+        actual.setDescripcion(payload.getDescripcion());
+        actual.setPrecio(payload.getPrecio());
+        actual.setStock(payload.getStock());
+        actual.setOferta(payload.getOferta());
+        actual.setDescuentoPorcentaje(payload.getDescuentoPorcentaje());
+
+        return productoRepository.save(actual);
+    }
+
+    public void eliminar(Long id) {
+        if (!productoRepository.existsById(id)) {
+            throw new NotFoundException("Producto con ID " + id + " no encontrado");
+        }
+        productoRepository.deleteById(id);
+    }
+
     // Funcionalidad solicitada: Comparar precios (Filtrar por precio máximo)
     public List<Producto> filtrarPorPrecioMaximo(Double precio) {
         return productoRepository.findAll().stream()
@@ -36,8 +65,8 @@ public class ProductoService {
     @Transactional
     public void actualizarStock(Long id, Integer cantidad) {
     // 1. Buscamos el producto de forma segura
-    Producto producto = productoRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Producto con ID " + id + " no encontrado"));
+    Producto producto = productoRepository.findByIdForUpdate(id)
+            .orElseThrow(() -> new NotFoundException("Producto con ID " + id + " no encontrado"));
 
     // 2. Usamos un método privado para validar (Esto es Refactor)
     validarDisponibilidad(producto, cantidad);
@@ -49,7 +78,7 @@ public class ProductoService {
 
 private void validarDisponibilidad(Producto p, Integer cantidad) {
     if (p.getStock() < cantidad) {
-        throw new RuntimeException("Stock insuficiente para: " + p.getNombre());
+        throw new InsufficientStockException("Stock insuficiente para: " + p.getNombre());
     }
 }
 }

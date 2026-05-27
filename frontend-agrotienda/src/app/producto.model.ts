@@ -4,4 +4,6 @@ export interface Producto {
     descripcion: string;
     precio: number;
     stock: number;
+    oferta?: boolean;
+    descuentoPorcentaje?: number | null;
 }

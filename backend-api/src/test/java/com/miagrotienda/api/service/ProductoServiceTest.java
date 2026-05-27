@@ -1,10 +1,10 @@
 package com.miagrotienda.api.service;
 
+import com.miagrotienda.api.Exception.InsufficientStockException;
 import com.miagrotienda.api.Model.Producto;
 import com.miagrotienda.api.Repository.ProductoRepository;
 import com.miagrotienda.api.Service.ProductoService;
 
-// El import de ProductoService no será necesario si están en el mismo paquete
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -24,13 +24,17 @@ class ProductoServiceTest {
 
     @Test
     void testComprarSinStockLanzaExcepcion() {
-        // ARRANGE: Simulamos que solo hay 2 unidades en MySQL
-        Producto p = new Producto(1L, "Fertilizante","Bidón de 1L", 50.0, 2);
-        when(productoRepository.findById(1L)).thenReturn(Optional.of(p));
+        Producto p = new Producto();
+        p.setId(1L);
+        p.setNombre("Fertilizante");
+        p.setDescripcion("Bidón de 1L");
+        p.setPrecio(50.0);
+        p.setStock(2);
+        p.setOferta(false);
+        p.setDescuentoPorcentaje(null);
 
-        // ACT & ASSERT: El test espera una falla (RuntimeException)
-        assertThrows(RuntimeException.class, () -> {
-            productoService.actualizarStock(1L, 5); 
-        });
+        when(productoRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(p));
+
+        assertThrows(InsufficientStockException.class, () -> productoService.actualizarStock(1L, 5));
     }
 }

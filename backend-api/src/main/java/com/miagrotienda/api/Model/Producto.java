@@ -18,4 +18,7 @@ public class Producto {
     private String descripcion;
     private Double precio;
     private Integer stock;
+
+    private Boolean oferta = false;
+    private Double descuentoPorcentaje;
 }

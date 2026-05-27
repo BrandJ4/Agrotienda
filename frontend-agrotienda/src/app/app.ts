@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
 import { ProductoService } from './services/producto.service';
+import { AuthService } from './services/auth.service';
+import { VentaService, VentaResponse } from './services/venta.service';
 import { Producto } from './producto.model';
 import { ItemCarrito } from './item-carrito.model';
 
@@ -10,13 +12,14 @@ import { ItemCarrito } from './item-carrito.model';
   standalone: true,
   imports: [CommonModule, FormsModule], 
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrls: ['./app.css']
 })
 export class App implements OnInit {
 
   listaProductos: Producto[] = [];
 
   productosFiltrados: Producto[] = [];
+  productosOferta: Producto[] = [];
 
   terminoBusqueda: string = '';
 
@@ -25,7 +28,28 @@ export class App implements OnInit {
 
   total: number = 0;
 
-  constructor(private productoService: ProductoService) {}
+  authUsername: string = '';
+  authPassword: string = '';
+  metodoPago: string = 'EFECTIVO';
+  referenciaPago: string = '';
+
+  misPedidos: VentaResponse[] = [];
+  pedidosAdmin: VentaResponse[] = [];
+
+  adminProducto: Producto = {
+    nombre: '',
+    descripcion: '',
+    precio: 0,
+    stock: 0,
+    oferta: false,
+    descuentoPorcentaje: null
+  };
+
+  constructor(
+    private productoService: ProductoService,
+    private ventaService: VentaService,
+    public authService: AuthService
+  ) {}
 
   ngOnInit(): void {
 
@@ -42,6 +66,7 @@ export class App implements OnInit {
         this.listaProductos = data;
 
         this.productosFiltrados = data;
+        this.productosOferta = data.filter(p => !!p.oferta).slice(0, 8);
 
       }
 
@@ -137,6 +162,11 @@ export class App implements OnInit {
   // FINALIZAR COMPRA
   finalizarCompra() {
 
+    if (!this.authService.isLoggedIn()) {
+      alert('Inicia sesión para comprar');
+      return;
+    }
+
     if (this.carrito.length === 0) return;
 
     const itemsVenta = this.carrito.map(item => ({
@@ -147,7 +177,13 @@ export class App implements OnInit {
 
     }));
 
-    this.productoService.registrarVenta(itemsVenta).subscribe({
+    const payload = {
+      items: itemsVenta,
+      metodoPago: this.metodoPago,
+      referenciaPago: this.referenciaPago || null
+    };
+
+    this.productoService.registrarVenta(payload).subscribe({
 
       next: () => {
 
@@ -156,8 +192,10 @@ export class App implements OnInit {
         this.carrito = [];
 
         this.total = 0;
+        this.referenciaPago = '';
 
         this.cargarProductos();
+        this.cargarMisPedidos();
 
       },
 
@@ -173,4 +211,74 @@ export class App implements OnInit {
 
   }
 
+  login() {
+    this.authService.login(this.authUsername, this.authPassword).subscribe({
+      next: () => {
+        this.authPassword = '';
+        this.cargarMisPedidos();
+        this.cargarPedidosAdmin();
+      },
+      error: () => alert('Credenciales inválidas')
+    });
+  }
+
+  register() {
+    this.authService.register(this.authUsername, this.authPassword).subscribe({
+      next: () => {
+        this.authPassword = '';
+        this.cargarMisPedidos();
+      },
+      error: () => alert('No se pudo registrar')
+    });
+  }
+
+  logout() {
+    this.authService.logout();
+    this.carrito = [];
+    this.total = 0;
+    this.misPedidos = [];
+    this.pedidosAdmin = [];
+  }
+
+  cargarMisPedidos() {
+    if (!this.authService.isLoggedIn()) return;
+    this.ventaService.misVentas().subscribe({
+      next: (data) => (this.misPedidos = data),
+      error: () => (this.misPedidos = [])
+    });
+  }
+
+  cargarPedidosAdmin() {
+    if (this.authService.rol() !== 'ADMIN') return;
+    this.ventaService.listarTodas().subscribe({
+      next: (data) => (this.pedidosAdmin = data),
+      error: () => (this.pedidosAdmin = [])
+    });
+  }
+
+  crearProductoAdmin() {
+    if (this.authService.rol() !== 'ADMIN') return;
+    this.productoService.crearProducto(this.adminProducto).subscribe({
+      next: () => {
+        this.adminProducto = {
+          nombre: '',
+          descripcion: '',
+          precio: 0,
+          stock: 0,
+          oferta: false,
+          descuentoPorcentaje: null
+        };
+        this.cargarProductos();
+      },
+      error: () => alert('No se pudo crear el producto')
+    });
+  }
+
+  eliminarProductoAdmin(id: number) {
+    if (this.authService.rol() !== 'ADMIN') return;
+    this.productoService.eliminarProducto(id).subscribe({
+      next: () => this.cargarProductos(),
+      error: () => alert('No se pudo eliminar el producto')
+    });
+  }
 }

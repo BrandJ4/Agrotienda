@@ -9,11 +9,9 @@ import com.miagrotienda.api.Service.VentaService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/ventas")
 public class VentaController {
@@ -21,39 +19,35 @@ public class VentaController {
     private final VentaService ventaService;
 
     public VentaController(VentaService ventaService) {
-
         this.ventaService = ventaService;
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN')")
-    public VentaResponseDTO registrarVenta(
-            @RequestBody VentaCreateRequestDTO req
-    ) {
-
+    @PreAuthorize("hasAuthority('CLIENTE') or hasAuthority('ADMIN')")
+    public VentaResponseDTO registrarVenta(@RequestBody VentaCreateRequestDTO req) {
         return toDto(ventaService.registrarVenta(req));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<VentaResponseDTO> listarTodas() {
         return ventaService.listarTodas().stream().map(this::toDto).toList();
     }
 
     @GetMapping("/mis")
-    @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CLIENTE') or hasAuthority('ADMIN')")
     public List<VentaResponseDTO> misVentas() {
         return ventaService.misVentas().stream().map(this::toDto).toList();
     }
 
     @GetMapping("/mis/{id}")
-    @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('CLIENTE') or hasAuthority('ADMIN')")
     public VentaResponseDTO obtenerMiVenta(@PathVariable Long id) {
         return toDto(ventaService.obtenerMiVentaPorId(id));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public VentaResponseDTO obtenerVenta(@PathVariable Long id) {
         return toDto(ventaService.obtenerPorId(id));
     }

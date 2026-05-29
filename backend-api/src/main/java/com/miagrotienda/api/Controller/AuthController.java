@@ -5,9 +5,7 @@ import com.miagrotienda.api.DTO.LoginRequestDTO;
 import com.miagrotienda.api.DTO.RegisterRequestDTO;
 import com.miagrotienda.api.Service.AuthService;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
-@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

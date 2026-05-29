@@ -4,9 +4,7 @@ import com.miagrotienda.api.Model.Producto;
 import com.miagrotienda.api.Service.ProductoService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
-@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/productos")
 public class ProductoController {
@@ -42,14 +40,13 @@ public class ProductoController {
         productoService.eliminar(id);
     }
 
-    // Nuevo endpoint para cumplir con "comparar precios"
     @GetMapping("/buscar")
     public List<Producto> buscarPorPrecio(@RequestParam Double precioMax) {
         return productoService.filtrarPorPrecioMaximo(precioMax);
     }
-    
+
     @PutMapping("/{id}/comprar")
     public void comprarProducto(@PathVariable Long id, @RequestParam Integer cantidad) {
-    productoService.actualizarStock(id, cantidad);
+        productoService.actualizarStock(id, cantidad);
     }
 }

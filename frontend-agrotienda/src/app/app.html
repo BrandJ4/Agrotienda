@@ -1,11 +1,103 @@
-<!-- ═══════════════════════════════════════════════════════
-     Mi AgroTienda — app.html  (sección navbar auth actualizada)
-     Solo se muestra el bloque del navbar aquí para que lo
-     pegues en tu app.html reemplazando el div de auth actual.
-═══════════════════════════════════════════════════════ -->
-
-<!-- ── MODAL AUTH (agrega esto justo antes del cierre de </nav>) ── -->
+<!-- Modal Auth -->
 <app-auth *ngIf="showAuthModal" (close)="showAuthModal = false"></app-auth>
+
+<!-- Toast notificación carrito -->
+<div class="toast-carrito" [class.visible]="toastVisible">
+  <i class="bi bi-cart-check-fill me-2"></i>
+  <span>{{ toastMensaje }}</span>
+</div>
+
+<!-- ── MODAL COMPROBANTE DE COMPRA ── -->
+<div class="comprobante-overlay" *ngIf="mostrarComprobante" (click)="cerrarComprobante()">
+  <div class="comprobante-modal" (click)="$event.stopPropagation()">
+
+    <div class="comprobante-header">
+      <div class="comprobante-logo">🌱 Mi <span>Agro</span>Tienda</div>
+      <div class="comprobante-titulo">COMPROBANTE DE COMPRA</div>
+      <div class="comprobante-check">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div class="comprobante-exitoso">¡Compra realizada con éxito!</div>
+    </div>
+
+    <div class="comprobante-body">
+
+      <div class="comprobante-info-row">
+        <div class="comprobante-info-item">
+          <div class="comprobante-label">N° Pedido</div>
+          <div class="comprobante-value">#{{ ultimaVenta?.id }}</div>
+        </div>
+        <div class="comprobante-info-item">
+          <div class="comprobante-label">Fecha</div>
+          <div class="comprobante-value">{{ ultimaVenta?.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
+        </div>
+        <div class="comprobante-info-item">
+          <div class="comprobante-label">Cliente</div>
+          <div class="comprobante-value">{{ authService.current()?.username }}</div>
+        </div>
+        <div class="comprobante-info-item">
+          <div class="comprobante-label">Método de pago</div>
+          <div class="comprobante-value">{{ ultimaVenta?.metodoPago }}</div>
+        </div>
+      </div>
+
+      <div class="comprobante-divider"></div>
+
+      <table class="comprobante-tabla">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th class="text-center">Cant.</th>
+            <th class="text-end">P. Unit.</th>
+            <th class="text-end">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let d of ultimaVenta?.detalles">
+            <td>{{ d.productoNombre }}</td>
+            <td class="text-center">{{ d.cantidad }}</td>
+            <td class="text-end">S/. {{ d.precioUnitario | number:'1.2-2' }}</td>
+            <td class="text-end">S/. {{ d.subtotal | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="comprobante-divider"></div>
+
+      <div class="comprobante-total-row">
+        <span>TOTAL A PAGAR</span>
+        <span class="comprobante-total-monto">S/. {{ ultimaVenta?.total | number:'1.2-2' }}</span>
+      </div>
+
+      <div *ngIf="ultimaVenta?.referenciaPago" class="comprobante-referencia">
+        <i class="bi bi-hash me-1"></i>Referencia: {{ ultimaVenta?.referenciaPago }}
+      </div>
+
+      <div class="comprobante-estado">
+        <i class="bi bi-clock me-1"></i>Estado: {{ ultimaVenta?.estadoPago || 'PENDIENTE' }}
+      </div>
+
+      <div class="comprobante-footer-note">
+        <i class="bi bi-truck me-1"></i>
+        Nos comunicaremos contigo para coordinar la entrega.<br>
+        <strong>WhatsApp:</strong> +51 941 240 184
+      </div>
+
+      <div class="comprobante-btns">
+        <button class="comprobante-btn-imprimir" onclick="window.print()">
+          <i class="bi bi-printer me-1"></i> Imprimir
+        </button>
+        <button class="comprobante-btn-imprimir" (click)="verBoletaModal()">
+          <i class="bi bi-receipt me-1"></i> Ver boleta
+        </button>
+        <button class="comprobante-btn-cerrar" (click)="cerrarComprobante()">
+          <i class="bi bi-x-circle me-1"></i> Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <!-- ── NAVBAR ── -->
 <nav class="navbar navbar-expand-lg navbar-agro sticky-top">
@@ -22,27 +114,18 @@
 
     <div class="collapse navbar-collapse" id="navMenu">
       <ul class="navbar-nav me-auto ms-3 gap-1">
-        <li class="nav-item"><a class="nav-link active" href="#">Inicio</a></li>
-        <li class="nav-item"><a class="nav-link" href="#seccion-productos">Productos</a></li>
-        <li class="nav-item"><a class="nav-link" href="#seccion-ofertas">Ofertas</a></li>
-        <li class="nav-item"><a class="nav-link" href="#seccion-nosotros">Nosotros</a></li>
-        <li class="nav-item"><a class="nav-link" href="#seccion-contacto">Contacto</a></li>
+        <li class="nav-item"><a class="nav-link active" href="#" (click)="scrollTo('inicio')">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="#seccion-productos" (click)="scrollTo('seccion-productos')">Productos</a></li>
+        <li class="nav-item"><a class="nav-link" href="#seccion-ofertas" (click)="scrollTo('seccion-ofertas')">Ofertas</a></li>
+        <li class="nav-item"><a class="nav-link" href="#seccion-nosotros" (click)="scrollTo('seccion-nosotros')">Nosotros</a></li>
+        <li class="nav-item"><a class="nav-link" href="#seccion-contacto" (click)="scrollTo('seccion-contacto')">Contacto</a></li>
       </ul>
 
-      <!-- Buscador navbar -->
-      <input class="form-control search-navbar me-3"
-             type="search"
-             placeholder="🔍 Buscar insumos..."
-             [(ngModel)]="terminoBusqueda"
-             (input)="filtrar()" />
-
-      <!-- Botón carrito con contador -->
       <a href="#seccion-carrito" class="nav-link btn-carrito me-2">
         <i class="bi bi-cart3"></i> Carrito
         <span class="badge-carrito">{{ carrito.length }}</span>
       </a>
 
-      <!-- ── AUTH SECTION ── -->
       <div *ngIf="!authService.isLoggedIn(); else loggedIn">
         <button class="btn-nav-login" (click)="showAuthModal = true">
           <i class="bi bi-person-circle me-1"></i> Iniciar sesión
@@ -67,7 +150,6 @@
           </button>
         </div>
       </ng-template>
-
     </div>
   </div>
 </nav>
@@ -78,40 +160,29 @@
   <div class="container position-relative">
     <div class="row align-items-center">
 
-      <!-- Texto -->
       <div class="col-lg-6 mb-4 mb-lg-0">
         <div class="hero-badge">🌿 Tienda de Insumos Agrícolas</div>
-        <h1>Todo lo que tu campo<br>necesita, en un solo lugar</h1>
+        <h1>Todo lo que tu campo<br>necesita, <span>en un solo lugar</span></h1>
         <p class="lead">
           Fertilizantes, semillas, pesticidas y más. Productos de calidad
           para agricultores peruanos, al mejor precio.
         </p>
         <div class="d-flex gap-3 flex-wrap">
-          <a href="#seccion-productos" class="btn-hero-primary">
+          <a href="#seccion-productos" class="btn-hero-primary" (click)="irACatalogoCompleto()">
             <i class="bi bi-bag-heart me-1"></i> Ver Productos
           </a>
           <button class="btn-hero-secondary" *ngIf="!authService.isLoggedIn()" (click)="showAuthModal = true">
             <i class="bi bi-person me-1"></i> Crear cuenta
           </button>
         </div>
-
         <div class="hero-stats">
-          <div class="hero-stat-item">
-            <div class="num">+500</div><div class="lbl">Productos</div>
-          </div>
-          <div class="hero-stat-item">
-            <div class="num">98%</div><div class="lbl">Satisfacción</div>
-          </div>
-          <div class="hero-stat-item">
-            <div class="num">24h</div><div class="lbl">Despacho</div>
-          </div>
-          <div class="hero-stat-item">
-            <div class="num">+1K</div><div class="lbl">Agricultores</div>
-          </div>
+          <div class="hero-stat-item"><div class="num">+500</div><div class="lbl">Productos</div></div>
+          <div class="hero-stat-item"><div class="num">98%</div><div class="lbl">Satisfacción</div></div>
+          <div class="hero-stat-item"><div class="num">24h</div><div class="lbl">Despacho</div></div>
+          <div class="hero-stat-item"><div class="num">+1K</div><div class="lbl">Agricultores</div></div>
         </div>
       </div>
 
-      <!-- Tarjetas flotantes -->
       <div class="col-lg-6 d-flex justify-content-center">
         <div style="max-width:320px; width:100%;">
           <div class="hero-card-float mb-3">
@@ -147,75 +218,83 @@
 <div class="categorias-bar">
   <div class="container">
     <div class="d-flex overflow-auto" style="gap:4px; scrollbar-width:none;">
-      <a href="#" class="cat-item activo"><i class="bi bi-grid"></i>Todo</a>
-      <a href="#" class="cat-item"><i class="bi bi-droplet-fill" style="color:#1565c0;"></i>Fertilizantes</a>
-      <a href="#" class="cat-item"><i class="bi bi-flower2" style="color:#e91e63;"></i>Semillas</a>
-      <a href="#" class="cat-item"><i class="bi bi-bug-fill" style="color:#795548;"></i>Pesticidas</a>
-      <a href="#" class="cat-item"><i class="bi bi-tools" style="color:#f57c00;"></i>Herramientas</a>
-      <a href="#" class="cat-item"><i class="bi bi-moisture" style="color:#0097a7;"></i>Riego</a>
-      <a href="#" class="cat-item"><i class="bi bi-box-seam" style="color:#7b1fa2;"></i>Empaques</a>
-      <a href="#" class="cat-item"><i class="bi bi-lightning-charge-fill" style="color:#f9a825;"></i>Ofertas</a>
+      <a href="#seccion-productos" class="cat-item" [class.activo]="categoriaActiva === 'Todo'" (click)="irACatalogoCompleto()">
+        <i class="bi bi-grid"></i>Todo
+      </a>
+      <a href="#seccion-productos" class="cat-item" [class.activo]="categoriaActiva === 'Fertilizantes'" (click)="seleccionarCategoria('Fertilizantes')">
+        <i class="bi bi-droplet-fill" style="color:#1565c0;"></i>Fertilizantes
+      </a>
+      <a href="#seccion-productos" class="cat-item" [class.activo]="categoriaActiva === 'Semillas'" (click)="seleccionarCategoria('Semillas')">
+        <i class="bi bi-flower2" style="color:#e91e63;"></i>Semillas
+      </a>
+      <a href="#seccion-productos" class="cat-item" [class.activo]="categoriaActiva === 'Pesticidas'" (click)="seleccionarCategoria('Pesticidas')">
+        <i class="bi bi-bug-fill" style="color:#795548;"></i>Pesticidas
+      </a>
+      <a href="#seccion-productos" class="cat-item" [class.activo]="categoriaActiva === 'Herramientas'" (click)="seleccionarCategoria('Herramientas')">
+        <i class="bi bi-tools" style="color:#f57c00;"></i>Herramientas
+      </a>
+      <a href="#seccion-productos" class="cat-item" [class.activo]="categoriaActiva === 'Riego'" (click)="seleccionarCategoria('Riego')">
+        <i class="bi bi-moisture" style="color:#0097a7;"></i>Riego
+      </a>
+      <a href="#seccion-productos" class="cat-item" [class.activo]="categoriaActiva === 'Empaques'" (click)="seleccionarCategoria('Empaques')">
+        <i class="bi bi-box-seam" style="color:#7b1fa2;"></i>Empaques
+      </a>
+      <a href="#seccion-productos" class="cat-item" [class.activo]="categoriaActiva === 'Ofertas'" (click)="seleccionarCategoria('Ofertas')">
+        <i class="bi bi-lightning-charge-fill" style="color:#f9a825;"></i>Ofertas
+      </a>
     </div>
   </div>
 </div>
 
 
-<section id="seccion-ofertas" class="py-4" style="background:rgba(67,160,71,0.06);">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-end mb-3">
-      <div>
-        <h2 class="section-title mb-0">Ofertas</h2>
-        <p class="section-subtitle mb-0">Productos con descuento</p>
-      </div>
-      <a href="#seccion-productos" class="ver-todos">Ver todos <i class="bi bi-arrow-right"></i></a>
-    </div>
-
-    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-3" *ngIf="productosOferta.length > 0; else sinOfertas">
-      <div class="col" *ngFor="let p of productosOferta">
-        <div class="card-producto" style="border:1px solid rgba(244,67,54,0.25);">
-          <div class="img-wrapper">
-            <span style="font-size:4.5rem;">🔥</span>
-            <span class="badge bg-danger" style="position:absolute;top:10px;left:10px;">OFERTA</span>
-          </div>
-          <div class="card-body">
-            <div class="nombre" [title]="p.nombre">{{ p.nombre }}</div>
-            <div class="descripcion">{{ p.descripcion }}</div>
-            <div class="d-flex justify-content-between align-items-end mb-1">
-              <div class="precio">
-                S/. {{ (p.descuentoPorcentaje != null ? (p.precio * (1 - (p.descuentoPorcentaje / 100))) : p.precio) | number:'1.2-2' }}
-              </div>
-            </div>
-            <button class="btn-agregar" (click)="agregarAlCarrito(p)" [disabled]="p.stock === 0">
-              <i class="bi bi-cart-plus me-1"></i>
-              {{ p.stock > 0 ? 'Añadir al carrito' : 'Agotado' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <ng-template #sinOfertas>
-      <div class="text-center py-4 text-muted">No hay ofertas registradas todavía.</div>
-    </ng-template>
+<!-- ── BUSCADOR + CHIPS ── -->
+<div class="container py-4">
+  <div class="input-group mb-3 buscador-wrapper">
+    <input type="text" class="form-control input-buscar"
+           placeholder="Buscar por nombre o precio..."
+           [(ngModel)]="terminoBusqueda"
+           (input)="filtrar()"
+           (keyup.enter)="filtrar()" />
+    <button class="input-group-text input-group-text-buscar" type="button" (click)="filtrar()">
+      <i class="bi bi-search"></i>
+    </button>
   </div>
-</section>
+  <div class="chips-wrapper">
+    <span class="chip-filtro" [class.activo]="categoriaActiva === 'Todo'" (click)="seleccionarCategoria('Todo')">Todos</span>
+    <span class="chip-filtro" [class.activo]="categoriaActiva === 'Fertilizantes'" (click)="seleccionarCategoria('Fertilizantes')">Fertilizantes</span>
+    <span class="chip-filtro" [class.activo]="categoriaActiva === 'Semillas'" (click)="seleccionarCategoria('Semillas')">Semillas</span>
+    <span class="chip-filtro" [class.activo]="categoriaActiva === 'Pesticidas'" (click)="seleccionarCategoria('Pesticidas')">Pesticidas</span>
+    <span class="chip-filtro" [class.activo]="categoriaActiva === 'Herramientas'" (click)="seleccionarCategoria('Herramientas')">Herramientas</span>
+    <span class="chip-filtro" [class.activo]="categoriaActiva === 'Riego'" (click)="seleccionarCategoria('Riego')">Riego</span>
+    <span class="chip-filtro" [class.activo]="categoriaActiva === 'Empaques'" (click)="seleccionarCategoria('Empaques')">Empaques</span>
+    <span class="chip-filtro" [class.activo]="soloEnStock" (click)="toggleEnStock()">En stock</span>
+    <span class="chip-filtro" [class.activo]="categoriaActiva === 'Ofertas'" (click)="seleccionarCategoria('Ofertas')">Ofertas</span>
+  </div>
+</div>
 
 
 <!-- ══════════════════════════════════════
      CONTENIDO PRINCIPAL
+     (Insumos Disponibles primero, Ofertas debajo)
 ══════════════════════════════════════ -->
-<main class="container mt-4" id="seccion-productos">
+<main class="container mt-2" id="seccion-productos">
   <div class="row g-4">
 
-    <!-- ── Columna Izquierda: Productos ── -->
-    <div class="col-lg-8 col-xl-9">
+    <!-- ── Columna Izquierda: Productos + Ofertas ── -->
+    <div class="col-12" [class.col-lg-8]="!vistaCatalogoCompleto" [class.col-xl-9]="!vistaCatalogoCompleto">
+
+      <div class="mb-3 d-flex justify-content-end" *ngIf="vistaCatalogoCompleto">
+        <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="volverAVistaConCarrito()">
+          <i class="bi bi-arrow-left me-1"></i> Ver con carrito al costado
+        </button>
+      </div>
 
       <!-- Panel Admin -->
       <div class="mb-3" *ngIf="authService.rol() === 'ADMIN'">
         <div class="admin-panel">
           <div class="admin-panel-header">
             <span class="admin-badge">⚙ Panel Admin</span>
-            <span style="opacity:0.65;font-size:0.8rem;">Agregar nuevo producto</span>
+            <span style="opacity:0.65;font-size:0.8rem;color:var(--text-muted);">Agregar nuevo producto</span>
           </div>
           <div class="row g-2">
             <div class="col-md-4">
@@ -240,6 +319,14 @@
               <input class="form-control form-control-sm" type="number" placeholder="% descuento" [(ngModel)]="adminProducto.descuentoPorcentaje" />
             </div>
             <div class="col-md-3">
+              <select class="form-select form-select-sm" [(ngModel)]="adminProducto.categoria">
+                <option *ngFor="let c of categorias" [ngValue]="c" [hidden]="c === 'Todo' || c === 'Ofertas'">{{ c }}</option>
+              </select>
+            </div>
+            <div class="col-md-9">
+              <input class="form-control form-control-sm" placeholder="URL de imagen (https://...)" [(ngModel)]="adminProducto.imagenUrl" />
+            </div>
+            <div class="col-md-3">
               <button class="btn btn-sm btn-success w-100" (click)="crearProductoAdmin()">
                 <i class="bi bi-plus-circle me-1"></i> Crear
               </button>
@@ -248,46 +335,7 @@
         </div>
       </div>
 
-      <!-- Buscador principal -->
-      <div class="mb-3">
-        <div class="input-group mb-3">
-          <input type="text"
-                 class="form-control input-buscar"
-                 placeholder="Buscar por nombre o precio..."
-                 [(ngModel)]="terminoBusqueda"
-                 (input)="filtrar()" />
-          <button class="input-group-text input-group-text-buscar" type="button">
-            <i class="bi bi-search"></i>
-          </button>
-        </div>
-
-        <div class="d-flex gap-2 flex-wrap">
-          <span class="chip-filtro activo">Todos</span>
-          <span class="chip-filtro">Fertilizantes</span>
-          <span class="chip-filtro">Semillas</span>
-          <span class="chip-filtro">Pesticidas</span>
-          <span class="chip-filtro">En stock</span>
-          <span class="chip-filtro">Ofertas</span>
-        </div>
-      </div>
-
-      <!-- Banner oferta del día -->
-      <div class="banner-promo mb-4">
-        <div class="row align-items-center">
-          <div class="col-8">
-            <div class="hero-badge mb-2"
-                 style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.4);color:#fff;">
-              ⚡ Oferta del día
-            </div>
-            <h4 class="mb-1">20% OFF en toda la línea de Fertilizantes</h4>
-            <p class="mb-0" style="font-size:0.85rem;opacity:0.85;">Solo por hoy · Válido hasta las 23:59</p>
-            <button class="btn-promo">Ver Oferta</button>
-          </div>
-          <div class="col-4 d-none d-sm-block text-end" style="font-size:3.5rem;opacity:0.6;">🌿</div>
-        </div>
-      </div>
-
-      <!-- Header sección -->
+      <!-- ── SECCIÓN: Insumos Disponibles ── -->
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h2 class="section-title mb-0">Insumos Disponibles</h2>
@@ -302,40 +350,38 @@
       <div class="row row-cols-2 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
 
         <div class="col-12" *ngIf="productosFiltrados.length === 0">
-          <div class="text-center py-5 text-muted">
+          <div class="text-center py-5" style="color:var(--text-muted);">
             <i class="bi bi-search" style="font-size:3rem; display:block; margin-bottom:12px;"></i>
             No se encontraron productos para "<strong>{{ terminoBusqueda }}</strong>"
           </div>
         </div>
 
         <div class="col" *ngFor="let p of productosFiltrados">
-          <div class="card-producto" [style.opacity]="p.stock === 0 ? '0.7' : '1'">
+          <div class="card-producto" [style.opacity]="p.stock === 0 ? '0.72' : '1'">
 
             <div class="img-wrapper">
-              <span style="font-size:4.5rem;">🌿</span>
-              <span class="badge bg-danger" style="position:absolute;top:10px;left:10px;" *ngIf="p.oferta">OFERTA</span>
+              <img [src]="p.imagenUrl || getImagenFallback(p)" [alt]="p.nombre" class="producto-img"
+                   (error)="$event.target['src']=getImagenFallback(p)" />
+              <span class="badge-oferta-card" *ngIf="p.oferta">OFERTA</span>
               <span class="badge-stock badge"
                     [ngClass]="{
                       'bg-success': p.stock > 10,
                       'bg-warning text-dark': p.stock > 0 && p.stock <= 10,
                       'bg-secondary': p.stock === 0
                     }">
-                {{ p.stock > 10 ? 'En stock' : p.stock > 0 ? 'Pocas unidades' : 'Agotado' }}
+                {{ p.stock > 10 ? 'En stock' : p.stock > 0 ? 'Pocas unid.' : 'Agotado' }}
               </span>
             </div>
 
             <div class="card-body">
+              <div class="categoria-tag">{{ p.categoria }}</div>
               <div class="nombre" [title]="p.nombre">{{ p.nombre }}</div>
               <div class="descripcion">{{ p.descripcion }}</div>
 
-              <div class="d-flex justify-content-between align-items-end mb-1">
-                <div class="precio">
-                  <span *ngIf="p.oferta && p.descuentoPorcentaje != null; else precioNormal">
-                    S/. {{ (p.precio * (1 - (p.descuentoPorcentaje / 100))) | number:'1.2-2' }}
-                  </span>
-                  <ng-template #precioNormal>
-                    S/. {{ p.precio | number:'1.2-2' }}
-                  </ng-template>
+              <div class="precio-wrapper">
+                <div class="precio">S/. {{ getPrecioFinal(p) | number:'1.2-2' }}</div>
+                <div class="precio-tachado" *ngIf="p.oferta && p.descuentoPorcentaje">
+                  S/. {{ p.precio | number:'1.2-2' }}
                 </div>
               </div>
 
@@ -352,7 +398,7 @@
 
               <button class="btn btn-sm btn-outline-danger w-100 mt-2"
                       *ngIf="authService.rol() === 'ADMIN' && p.id"
-                      (click)="eliminarProductoAdmin(p.id)">
+                      (click)="eliminarProductoAdmin(p.id!)">
                 <i class="bi bi-trash me-1"></i> Eliminar
               </button>
             </div>
@@ -364,147 +410,201 @@
 
       <!-- Paginación -->
       <nav class="mt-4 d-flex justify-content-center">
-        <ul class="pagination pagination-sm">
-          <li class="page-item disabled"><a class="page-link" href="#">«</a></li>
-          <li class="page-item active">
-            <a class="page-link" href="#"
-               style="background:var(--verde-medio);border-color:var(--verde-medio);">1</a>
-          </li>
-          <li class="page-item"><a class="page-link" href="#">2</a></li>
-          <li class="page-item"><a class="page-link" href="#">3</a></li>
-          <li class="page-item"><a class="page-link" href="#">»</a></li>
-        </ul>
+        <nav class="paginacion-custom">
+          <button class="pag-btn pag-nav" disabled>«</button>
+          <button class="pag-btn activo">1</button>
+          <button class="pag-btn">2</button>
+          <button class="pag-btn">3</button>
+          <button class="pag-btn pag-nav">»</button>
+        </nav>
       </nav>
 
-    </div>
-    <!-- /col productos -->
-
-
-    <!-- ── Columna Derecha: Carrito ── -->
-    <div class="col-lg-4 col-xl-3" id="seccion-carrito">
-
-      <div class="carrito-panel">
-        <h5><i class="bi bi-cart3 me-2"></i>Tu Pedido</h5>
-
-        <!-- Si no está logueado, mostrar acceso rápido -->
-        <div *ngIf="!authService.isLoggedIn()" class="login-prompt">
-          <div style="font-size:2rem;margin-bottom:8px;">🔐</div>
-          <p style="font-size:0.84rem;color:#757575;margin-bottom:12px;">
-            Inicia sesión para guardar tu carrito y realizar compras
-          </p>
-          <button class="btn-comprar" style="margin-top:0;" (click)="showAuthModal = true">
-            <i class="bi bi-person-circle me-1"></i> Iniciar sesión
-          </button>
+      <!-- ── SECCIÓN OFERTAS (debajo de los productos) ── -->
+      <section id="seccion-ofertas" class="mt-5 py-4 px-3"
+               style="background:var(--seccion-alt); border-radius:18px;">
+        <div class="d-flex justify-content-between align-items-end mb-3">
+          <div>
+            <h2 class="section-title mb-0">🔥 Ofertas</h2>
+            <p class="section-subtitle mb-0">Productos con descuento especial</p>
+          </div>
         </div>
 
-        <div *ngIf="authService.isLoggedIn()">
-          <!-- Carrito vacío -->
-          <div class="carrito-vacio" *ngIf="carrito.length === 0">
-            <i class="bi bi-cart-x"></i>
-            El carrito está vacío
-          </div>
-
-          <div *ngIf="carrito.length > 0">
-            <div class="item-carrito" *ngFor="let item of carrito">
-              <div>
-                <div class="item-nombre">{{ item.producto.nombre }}</div>
-                <div style="font-size:0.75rem; color:#9e9e9e;">
-                  S/. {{ item.producto.precio | number:'1.2-2' }} × {{ item.cantidad }}
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-3" *ngIf="productosOferta.length > 0; else sinOfertas">
+          <div class="col" *ngFor="let p of productosOferta">
+            <div class="card-producto" style="border-color:rgba(229,57,53,0.25);">
+              <div class="img-wrapper">
+                <img [src]="p.imagenUrl || getImagenFallback(p)" [alt]="p.nombre" class="producto-img"
+                     (error)="$event.target['src']=getImagenFallback(p)" />
+                <span class="badge-oferta-card">OFERTA</span>
+              </div>
+              <div class="card-body">
+                <div class="categoria-tag">{{ p.categoria }}</div>
+                <div class="nombre" [title]="p.nombre">{{ p.nombre }}</div>
+                <div class="descripcion">{{ p.descripcion }}</div>
+                <div class="precio-wrapper">
+                  <div class="precio">S/. {{ getPrecioFinal(p) | number:'1.2-2' }}</div>
+                  <div class="precio-tachado" *ngIf="p.oferta && p.descuentoPorcentaje">
+                    S/. {{ p.precio | number:'1.2-2' }}
+                  </div>
                 </div>
+                <button class="btn-agregar" (click)="agregarAlCarrito(p)" [disabled]="p.stock === 0">
+                  <i class="bi bi-cart-plus me-1"></i>
+                  {{ p.stock > 0 ? 'Añadir al carrito' : 'Agotado' }}
+                </button>
               </div>
-              <div class="item-precio">
-                S/. {{ item.producto.precio * item.cantidad | number:'1.2-2' }}
-              </div>
             </div>
+          </div>
+        </div>
 
-            <div class="carrito-total-row">
-              <span>Total:</span>
-              <span class="monto">S/. {{ total | number:'1.2-2' }}</span>
-            </div>
+        <ng-template #sinOfertas>
+          <div class="text-center py-4" style="color:var(--text-muted);">No hay ofertas registradas todavía.</div>
+        </ng-template>
+      </section>
 
-            <div class="mt-2">
-              <label class="form-label" style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">Método de pago</label>
-              <select class="form-select form-select-sm" [(ngModel)]="metodoPago">
-                <option value="Efectivo">Efectivo</option>
-                <option value="Yape">Yape</option>
-                <option value="Plin">Plin</option>
-                <option value="Tarjeta">Tarjeta</option>
-              </select>
-              <input class="form-control form-control-sm mt-2"
-                     placeholder="Referencia (opcional)"
-                     [(ngModel)]="referenciaPago" />
-            </div>
+    </div>
+    <!-- /col productos + ofertas -->
 
-            <button class="btn-comprar" (click)="finalizarCompra()">
-              <i class="bi bi-credit-card me-1"></i> CONFIRMAR COMPRA
+
+    <!-- ── Columna Derecha: Carrito + Asesoría (siempre al lado) ── -->
+    <div class="col-lg-4 col-xl-3" id="seccion-carrito" *ngIf="!vistaCatalogoCompleto">
+      <div class="col-lateral">
+
+        <!-- CARRITO -->
+        <div class="carrito-panel">
+          <h5><i class="bi bi-cart3 me-2"></i>Tu Pedido</h5>
+
+          <!-- Sin login -->
+          <div *ngIf="!authService.isLoggedIn()" class="login-prompt">
+            <div style="font-size:2rem;margin-bottom:8px;">🔐</div>
+            <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:12px;">
+              Inicia sesión para guardar tu carrito y realizar compras
+            </p>
+            <button class="btn-comprar" style="margin-top:0;" (click)="showAuthModal = true">
+              <i class="bi bi-person-circle me-1"></i> Iniciar sesión
             </button>
           </div>
 
-          <!-- Info envío gratis -->
-          <div class="mt-3 p-2 rounded"
-               style="background:var(--verde-suave); font-size:0.78rem; color:var(--verde-medio);">
-            <i class="bi bi-truck me-1"></i>
-            <strong>Envío gratis</strong> en compras mayores a S/. 150
-          </div>
+          <div *ngIf="authService.isLoggedIn()">
+            <div class="carrito-vacio" *ngIf="carrito.length === 0">
+              <i class="bi bi-cart-x"></i>
+              El carrito está vacío
+            </div>
 
-          <!-- Mis pedidos -->
-          <div class="mt-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div style="font-weight:800;font-size:0.9rem;">Mis pedidos</div>
-              <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="cargarMisPedidos()">
-                Actualizar
+            <div *ngIf="carrito.length > 0">
+              <div class="item-carrito" *ngFor="let item of carrito">
+                <div>
+                  <div class="item-nombre">{{ item.producto.nombre }}</div>
+                  <div style="font-size:0.73rem;color:var(--text-muted);">
+                    S/. {{ item.producto.precio | number:'1.2-2' }} × {{ item.cantidad }}
+                  </div>
+                </div>
+                <div class="item-precio">
+                  S/. {{ item.producto.precio * item.cantidad | number:'1.2-2' }}
+                </div>
+              </div>
+
+              <div class="carrito-total-row">
+                <span>Total:</span>
+                <span class="monto">S/. {{ total | number:'1.2-2' }}</span>
+              </div>
+
+              <div class="mt-2">
+                <label class="form-label" style="font-size:0.73rem;color:var(--text-muted);margin-bottom:4px;">Método de pago</label>
+                <select class="form-select form-select-sm select-pago" [(ngModel)]="metodoPago">
+                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="YAPE">Yape</option>
+                  <option value="PLIN">Plin</option>
+                  <option value="TARJETA">Tarjeta</option>
+                </select>
+                <input *ngIf="metodoPago === 'TARJETA'"
+                       class="form-control form-control-sm mt-2 input-referencia"
+                       placeholder="Número de tarjeta"
+                       maxlength="19"
+                       [(ngModel)]="numeroTarjeta" />
+                <input *ngIf="metodoPago === 'YAPE' || metodoPago === 'PLIN'"
+                       class="form-control form-control-sm mt-2 input-referencia"
+                       placeholder="Código de aprobación"
+                       [(ngModel)]="referenciaPago" />
+              </div>
+
+              <button class="btn-comprar" (click)="finalizarCompra()">
+                <i class="bi bi-credit-card me-1"></i> CONFIRMAR COMPRA
               </button>
             </div>
-            <div *ngIf="misPedidos.length === 0" class="text-muted" style="font-size:0.8rem;">
-              Aún no tienes pedidos.
+
+            <div class="envio-gratis-note">
+              <i class="bi bi-truck me-1"></i>
+              <strong>Envío gratis</strong> en compras mayores a S/. 150
             </div>
-            <div *ngFor="let v of misPedidos.slice(0,3)" class="p-2 rounded mb-2"
-                 style="background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.06);">
-              <div class="d-flex justify-content-between" style="font-size:0.82rem;">
-                <div>#{{ v.id }} · {{ v.metodoPago || 'EFECTIVO' }}</div>
-                <div style="font-weight:800;">S/. {{ v.total | number:'1.2-2' }}</div>
+
+            <!-- Mis pedidos -->
+            <div class="mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div style="font-weight:800;font-size:0.88rem;color:var(--text-primary);">Mis pedidos</div>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="cargarMisPedidos()">
+                  Actualizar
+                </button>
               </div>
-              <div class="text-muted" style="font-size:0.72rem;">{{ v.estadoPago || 'PENDIENTE' }}</div>
+              <div *ngIf="misPedidos.length === 0" style="font-size:0.8rem;color:var(--text-muted);">
+                Aún no tienes pedidos.
+              </div>
+              <div *ngFor="let v of misPedidos.slice(0,3)" class="pedido-item">
+                <div class="d-flex justify-content-between">
+                  <span class="pedido-id">#{{ v.id }} · {{ v.metodoPago || 'EFECTIVO' }}</span>
+                  <span class="pedido-total">S/. {{ v.total | number:'1.2-2' }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                  <span class="pedido-estado">{{ v.estadoPago || 'PENDIENTE' }}</span>
+                  <button class="btn-ver-boleta" (click)="verBoleta(v)">
+                    <i class="bi bi-receipt me-1"></i>Ver boleta
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pedidos Admin -->
+            <div class="mt-3" *ngIf="authService.rol() === 'ADMIN'">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div style="font-weight:800;font-size:0.88rem;color:var(--text-primary);">Todos los pedidos</div>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="cargarPedidosAdmin()">
+                  Actualizar
+                </button>
+              </div>
+              <div *ngIf="pedidosAdmin.length === 0" style="font-size:0.8rem;color:var(--text-muted);">Sin pedidos.</div>
+              <div *ngFor="let v of pedidosAdmin.slice(0,3)" class="pedido-item"
+                   style="background:var(--tierra-claro);border-color:rgba(141,110,99,0.2);">
+                <div class="d-flex justify-content-between">
+                  <span class="pedido-id">#{{ v.id }} · {{ v.metodoPago || 'EFECTIVO' }}</span>
+                  <span class="pedido-total">S/. {{ v.total | number:'1.2-2' }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                  <span class="pedido-estado">{{ v.estadoPago || 'PENDIENTE' }}</span>
+                  <button class="btn-ver-boleta" (click)="verBoleta(v)">
+                    <i class="bi bi-receipt me-1"></i>Ver boleta
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+        <!-- /carrito-panel -->
 
-          <!-- Pedidos Admin -->
-          <div class="mt-3" *ngIf="authService.rol() === 'ADMIN'">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div style="font-weight:800;font-size:0.9rem;">Todos los pedidos</div>
-              <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="cargarPedidosAdmin()">
-                Actualizar
-              </button>
-            </div>
-            <div *ngIf="pedidosAdmin.length === 0" class="text-muted" style="font-size:0.8rem;">Sin pedidos.</div>
-            <div *ngFor="let v of pedidosAdmin.slice(0,3)" class="p-2 rounded mb-2"
-                 style="background:rgba(121,85,72,0.06);border:1px solid rgba(121,85,72,0.15);">
-              <div class="d-flex justify-content-between" style="font-size:0.82rem;">
-                <div>#{{ v.id }} · {{ v.metodoPago || 'EFECTIVO' }}</div>
-                <div style="font-weight:800;">S/. {{ v.total | number:'1.2-2' }}</div>
-              </div>
-              <div class="text-muted" style="font-size:0.72rem;">{{ v.estadoPago || 'PENDIENTE' }}</div>
-            </div>
+        <!-- ASESORÍA -->
+        <div class="asesoria-card">
+          <div style="font-size:2.4rem;margin-bottom:8px;">🧑‍🌾</div>
+          <div style="font-weight:700;color:var(--tierra);font-size:0.86rem;margin-bottom:4px;">
+            ¿Necesitas asesoría?
           </div>
+          <div style="font-size:0.77rem;color:var(--text-muted);margin-bottom:12px;">
+            Nuestros agrónomos te ayudan a elegir el insumo correcto
+          </div>
+          <a class="btn-whatsapp" href="https://api.whatsapp.com/send/?phone=51941240184" target="_blank" rel="noreferrer">
+            <i class="bi bi-whatsapp"></i> Consultar gratis
+          </a>
         </div>
-      </div>
 
-      <!-- Mini banner asesoría -->
-      <div class="mt-3 p-3 rounded-3 text-center"
-           style="background:var(--tierra-claro); border:1px solid #d7ccc8;">
-        <div style="font-size:2.5rem;">🧑‍🌾</div>
-        <div style="font-weight:700; color:var(--tierra); font-size:0.88rem; margin:6px 0 4px;">
-          ¿Necesitas asesoría?
-        </div>
-        <div style="font-size:0.78rem; color:#8d6e63; margin-bottom:8px;">
-          Nuestros agrónomos te ayudan a elegir el insumo correcto
-        </div>
-        <a href="#" class="btn btn-sm btn-outline-secondary rounded-pill"
-           style="border-color:var(--tierra);color:var(--tierra);font-size:0.78rem;font-weight:700;">
-          <i class="bi bi-whatsapp me-1" style="color:#25d366;"></i> Consultar gratis
-        </a>
       </div>
-
+      <!-- /col-lateral -->
     </div>
     <!-- /col carrito -->
 
@@ -512,37 +612,49 @@
 </main>
 
 
+<!-- Botón flotante carrito (vista catálogo completo) -->
+<button class="btn-carrito-flotante" *ngIf="vistaCatalogoCompleto" (click)="volverAVistaConCarrito()">
+  <i class="bi bi-cart3"></i>
+  <span class="badge-carrito-flotante" *ngIf="carrito.length > 0">{{ carrito.length }}</span>
+</button>
+
+<!-- ── BOTÓN DARK MODE ── -->
+<button class="btn-theme-toggle" (click)="toggleDarkMode()" [title]="darkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+  <i [class]="darkMode ? 'bi bi-sun-fill' : 'bi bi-moon-fill'"></i>
+</button>
+
+
 <!-- NOSOTROS -->
-<section id="seccion-nosotros" class="py-5" style="background:#fff;">
+<section id="seccion-nosotros" class="py-5" style="background:var(--nosotros-bg);">
   <div class="container">
     <div class="row g-4 align-items-center">
       <div class="col-lg-6">
         <h2 class="section-title">Nosotros</h2>
         <p class="section-subtitle">Insumos agrícolas con respaldo técnico</p>
-        <p style="opacity:0.8;">
+        <p style="opacity:0.8;color:var(--text-secondary);">
           Mi AgroTienda nace para acercar productos confiables a agricultores de todo el Perú.
           Trabajamos con marcas certificadas y ofrecemos asesoría para que elijas el insumo correcto.
         </p>
         <div class="d-flex gap-3 flex-wrap">
-          <div class="p-3 rounded-3" style="background:rgba(67,160,71,0.08);min-width:180px;">
-            <div style="font-weight:700;">Calidad</div>
-            <div style="opacity:0.75;font-size:0.85rem;">Productos certificados</div>
+          <div class="nosotros-block" style="min-width:170px;">
+            <div style="font-weight:700;color:var(--text-primary);">Calidad</div>
+            <div style="opacity:0.75;font-size:0.84rem;color:var(--text-muted);">Productos certificados</div>
           </div>
-          <div class="p-3 rounded-3" style="background:rgba(67,160,71,0.08);min-width:180px;">
-            <div style="font-weight:700;">Soporte</div>
-            <div style="opacity:0.75;font-size:0.85rem;">Asesoría técnica</div>
+          <div class="nosotros-block" style="min-width:170px;">
+            <div style="font-weight:700;color:var(--text-primary);">Soporte</div>
+            <div style="opacity:0.75;font-size:0.84rem;color:var(--text-muted);">Asesoría técnica</div>
           </div>
-          <div class="p-3 rounded-3" style="background:rgba(67,160,71,0.08);min-width:180px;">
-            <div style="font-weight:700;">Entrega</div>
-            <div style="opacity:0.75;font-size:0.85rem;">Envíos a todo el Perú</div>
+          <div class="nosotros-block" style="min-width:170px;">
+            <div style="font-weight:700;color:var(--text-primary);">Entrega</div>
+            <div style="opacity:0.75;font-size:0.84rem;color:var(--text-muted);">Envíos a todo el Perú</div>
           </div>
         </div>
       </div>
       <div class="col-lg-6 text-center">
-        <div class="p-4 rounded-4" style="border:1px solid rgba(0,0,0,0.08);background:rgba(67,160,71,0.04);">
-          <div style="font-size:4rem;">🌾</div>
-          <div style="font-weight:800;font-size:1.1rem;">Tu aliado en el campo</div>
-          <div style="opacity:0.75;font-size:0.9rem;">Atención de lunes a sábado</div>
+        <div class="nosotros-block p-4" style="text-align:center;">
+          <div style="font-size:4rem;margin-bottom:8px;">🌾</div>
+          <div style="font-weight:800;font-size:1.1rem;color:var(--text-primary);">Tu aliado en el campo</div>
+          <div style="opacity:0.75;font-size:0.88rem;color:var(--text-muted);">Atención de lunes a sábado</div>
         </div>
       </div>
     </div>
@@ -551,28 +663,27 @@
 
 
 <!-- CONTACTO -->
-<section id="seccion-contacto" class="py-5" style="background:rgba(121,85,72,0.06);">
+<section id="seccion-contacto" class="py-5" style="background:var(--contacto-bg);">
   <div class="container">
     <div class="row g-4">
       <div class="col-lg-6">
         <h2 class="section-title">Contacto</h2>
         <p class="section-subtitle">Escríbenos y te ayudamos</p>
-        <div class="p-4 rounded-4" style="background:#fff;border:1px solid rgba(0,0,0,0.08);">
-          <div class="mb-2"><strong>WhatsApp:</strong> +51 999 999 999</div>
-          <div class="mb-2"><strong>Email:</strong> contacto@miagrotienda.pe</div>
-          <div class="mb-0"><strong>Horario:</strong> Lun–Sáb 8:00–18:00</div>
+        <div class="contacto-card">
+          <div class="mb-2" style="color:var(--text-primary);"><strong>WhatsApp:</strong> +51 999 999 999</div>
+          <div class="mb-2" style="color:var(--text-primary);"><strong>Email:</strong> contacto@miagrotienda.pe</div>
+          <div style="color:var(--text-primary);"><strong>Horario:</strong> Lun–Sáb 8:00–18:00</div>
         </div>
       </div>
-      <div class="col-lg-6" id="seccion-ubicacion">
+      <div class="col-lg-6">
         <h2 class="section-title">Ubicación</h2>
         <p class="section-subtitle">Encuéntranos</p>
-        <div class="p-4 rounded-4" style="background:#fff;border:1px solid rgba(0,0,0,0.08);">
-          <div class="mb-2"><strong>Dirección:</strong> Av. Principal 123, Lima, Perú</div>
+        <div class="contacto-card">
+          <div class="mb-3" style="color:var(--text-primary);"><strong>Dirección:</strong> Av. Principal 123, Lima, Perú</div>
           <a class="btn btn-sm btn-outline-secondary rounded-pill"
-             href="https://www.google.com/maps"
-             target="_blank" rel="noreferrer"
+             href="https://www.google.com/maps" target="_blank" rel="noreferrer"
              style="border-color:var(--tierra);color:var(--tierra);font-weight:700;">
-            Ver en Google Maps
+            <i class="bi bi-geo-alt me-1"></i> Ver en Google Maps
           </a>
         </div>
       </div>
@@ -587,15 +698,15 @@
     <div class="row g-4">
       <div class="col-lg-4">
         <div class="footer-brand">🌱 Mi <span>Agro</span>Tienda</div>
-        <p style="font-size:0.85rem;opacity:0.65;max-width:280px;margin-bottom:16px;">
+        <p style="font-size:0.83rem;opacity:0.62;max-width:280px;margin-bottom:16px;">
           Tu aliado en el campo. Insumos agrícolas de calidad con respaldo técnico
           para agricultores de todo el Perú.
         </p>
         <div class="d-flex gap-2">
-          <a href="#" class="social-icon"><i class="bi bi-facebook"></i></a>
-          <a href="#" class="social-icon"><i class="bi bi-instagram"></i></a>
-          <a href="#" class="social-icon"><i class="bi bi-whatsapp"></i></a>
-          <a href="#" class="social-icon"><i class="bi bi-youtube"></i></a>
+          <a href="https://www.facebook.com/agrotiendaperu/?locale=es_LA" class="social-icon"><i class="bi bi-facebook"></i></a>
+          <a href="https://www.instagram.com/agrotienda.pe/" class="social-icon"><i class="bi bi-instagram"></i></a>
+          <a href="https://api.whatsapp.com/send/?phone=51941240184" class="social-icon"><i class="bi bi-whatsapp"></i></a>
+          <a href="https://www.youtube.com/@agrotienda" class="social-icon"><i class="bi bi-youtube"></i></a>
         </div>
       </div>
       <div class="col-sm-4 col-lg-2">
@@ -629,13 +740,12 @@
       <div class="col-lg-2">
         <h6>Contacto</h6>
         <ul>
-          <li><a href="#"><i class="bi bi-telephone me-1"></i> 01-234-5678</a></li>
-          <li><a href="#"><i class="bi bi-envelope me-1"></i> info@miagrotienda.pe</a></li>
-          <li><a href="#"><i class="bi bi-geo-alt me-1"></i> Lima, Perú</a></li>
+          <li><a href="#"><i class="bi bi-telephone me-1"></i>01-234-5678</a></li>
+          <li><a href="#"><i class="bi bi-envelope me-1"></i>info@miagrotienda.pe</a></li>
+          <li><a href="#"><i class="bi bi-geo-alt me-1"></i>Lima, Perú</a></li>
         </ul>
       </div>
     </div>
-
     <div class="footer-bottom">
       <span>© 2025 Mi AgroTienda · Todos los derechos reservados</span>
       <span>Hecho con 💚 para el campo peruano</span>

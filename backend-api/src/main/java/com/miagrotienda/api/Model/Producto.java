@@ -21,4 +21,9 @@ public class Producto {
 
     private Boolean oferta = false;
     private Double descuentoPorcentaje;
+
+    private String categoria;
+
+    @Column(length = 500)
+    private String imagenUrl;
 }

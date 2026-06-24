@@ -1,0 +1,41 @@
+.btn-carrito-flotante {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--verde-medio, #2e7d32);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.badge-carrito-flotante {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #e53935;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  font-weight: 700;
+}
+
+.producto-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

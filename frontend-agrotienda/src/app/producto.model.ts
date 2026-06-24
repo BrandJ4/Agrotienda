@@ -6,4 +6,6 @@ export interface Producto {
     stock: number;
     oferta?: boolean;
     descuentoPorcentaje?: number | null;
+    categoria?: string;
+    imagenUrl?: string;
 }

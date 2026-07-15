@@ -18,7 +18,6 @@ class ProductoControllerTest {
 
     @Test
     void debeRetornarListaDeProductos() throws Exception {
-        // Esta prueba fallará porque el endpoint /api/productos aún no existe
         mockMvc.perform(get("/api/productos"))
                .andExpect(status().isOk());
     }

@@ -1,12 +1,11 @@
 {
-  "builds": [
+  "buildCommand": "ng build --configuration production",
+  "outputDirectory": "dist/frontend-agrotienda/browser",
+  "framework": "angular",
+  "rewrites": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist/frontend-agrotienda" }
+      "source": "/((?!assets/).*)",
+      "destination": "/index.html"
     }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
